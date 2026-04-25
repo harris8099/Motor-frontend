@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, IndianRupee, Zap, Calendar, Settings } from 'lucide-react';
+import '../pages/PageStyles.css';
 
 export default function PowerForecast({ forecastData, electricityRate, onRateChange }) {
   const [localRate, setLocalRate] = useState(electricityRate || 8.0);
