@@ -1499,9 +1499,10 @@ section h2 {
 .chart-bar {
   width: 100%;
   min-width: 4px;
+  height: 4px;
   border-radius: 2px;
   transition: height 0.3s ease;
-  background-color: var(--accent-1);
+  background-color: var(--accent-1, #0f6cbd);
 }
 
 .bar-label {

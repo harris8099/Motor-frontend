@@ -282,7 +282,6 @@
     border-color: var(--panel-border, #444851);
   }
 }
-}
 
 .prediction-header {
   display: flex;
