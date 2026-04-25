@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Activity, Plus, Cpu, ArrowRight, Trash2, Search, Wifi, WifiOff, Clock, Layers, X, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Activity, Plus, Cpu, ArrowRight, Trash2, Search, Wifi, WifiOff, Clock, Layers, X, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { fetchDevices, createDevice, createDevicesBulk, deleteDevice, updateDevice } from '../api';
+import ThemeToggle from '../components/ThemeToggle';
 import './Home.css';
 
 function Home() {
@@ -20,15 +21,7 @@ function Home() {
   // Bulk add
   const [bulkInput, setBulkInput] = useState('');
 
-  // Fetch devices from backend on mount
-  useEffect(() => {
-    loadDevices();
-    // Refresh every 10 seconds for more responsive updates
-    const interval = setInterval(loadDevices, 10000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const loadDevices = async () => {
+  async function loadDevices() {
     try {
       const data = await fetchDevices();
       // Transform backend data to frontend format
@@ -50,7 +43,13 @@ function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    loadDevices();
+    const interval = setInterval(loadDevices, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   const addSingleDevice = async (e) => {
     e.preventDefault();
@@ -159,9 +158,12 @@ function Home() {
     <div className="home-page">
       <header className="home-header">
         <div className="header-content">
-          <div className="logo">
-            <Activity size={32} />
-            <h1>Smart Motor Command Center</h1>
+          <div className="header-topbar">
+            <div className="logo">
+              <Activity size={32} />
+              <h1>Smart Motor Command Center</h1>
+            </div>
+            <ThemeToggle />
           </div>
           <p className="subtitle">Manage and monitor your motor devices</p>
         </div>

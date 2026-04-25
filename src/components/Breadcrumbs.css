@@ -10,20 +10,20 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  color: #94a3b8;
+  color: var(--text-muted);
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 .breadcrumb-link:hover {
-  color: #38bdf8;
+  color: var(--accent-1);
 }
 
 .breadcrumb-separator {
-  color: #64748b;
+  color: var(--text-soft);
 }
 
 .breadcrumb-current {
-  color: #f8fafc;
+  color: var(--text-strong);
   font-weight: 500;
 }

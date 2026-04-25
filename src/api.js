@@ -24,6 +24,15 @@ export async function fetchDevicePredictions(deviceId, limit = 5) {
   return res.json();
 }
 
+export async function triggerGeminiAnalysis(deviceId) {
+  const res = await fetch(`${API_BASE_URL}/ai/analyze/${deviceId}`, {
+    method: 'POST',
+    headers,
+  });
+  if (!res.ok) throw new Error('Failed to trigger Gemini AI analysis');
+  return res.json();
+}
+
 export async function fetchPowerForecast(deviceId, electricityRate = 0.12, hours = 24) {
   const res = await fetch(`${API_BASE_URL}/forecast/${deviceId}?electricity_rate=${electricityRate}&hours=${hours}`, { headers });
   if (!res.ok) throw new Error('Failed to fetch forecast');

@@ -1,19 +1,74 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Nunito+Sans:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
 :root {
-  --ink-main: #ffffff;
-  --ink-muted: #94a3b8;
-  --accent-1: #00f0ff;
-  --accent-2: #b026ff;
-  --accent-warning: #ffd700;
-  --accent-danger: #ff0055;
-  --panel-bg: rgba(10, 10, 10, 0.85);
-  --panel-border: rgba(0, 240, 255, 0.15);
-  --panel-border-hover: var(--accent-1);
-  --soft-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-  --glow-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
-  --bg-dark: #000000;
-  --bg-darker: #050505;
+  --bg-canvas: #f3f5f7;
+  --bg-muted: #e7ebef;
+  --surface-base: rgba(255, 255, 255, 0.84);
+  --surface-strong: rgba(255, 255, 255, 0.92);
+  --surface-dark: #16202b;
+  --surface-dark-muted: #1d2a38;
+  --border-subtle: rgba(15, 23, 42, 0.08);
+  --border-strong: rgba(15, 23, 42, 0.16);
+  --text-strong: #16202b;
+  --text-main: #304152;
+  --text-muted: #64748b;
+  --text-soft: #8c98a6;
+  --accent-1: #0f6cbd;
+  --accent-2: #0a84c6;
+  --accent-warm: #c78a2c;
+  --accent-success: #1d7a55;
+  --accent-danger: #b5473d;
+  --panel-bg: var(--surface-base);
+  --panel-border: var(--border-subtle);
+  --panel-border-hover: rgba(15, 108, 189, 0.28);
+  --soft-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  --glow-shadow: 0 20px 60px rgba(15, 23, 42, 0.1);
+  --ink-main: var(--text-strong);
+  --ink-muted: var(--text-muted);
+  --success-bg: rgba(29, 122, 85, 0.1);
+  --danger-bg: rgba(181, 71, 61, 0.1);
+  --theme-toggle-active-bg: var(--surface-dark);
+  --theme-toggle-active-fg: #f8fafc;
+  --theme-toggle-bg: rgba(255, 255, 255, 0.72);
+  --button-dark-bg: var(--surface-dark);
+  --button-dark-border: var(--surface-dark);
+  --button-dark-fg: #f8fafc;
+  --button-dark-hover-bg: var(--surface-dark-muted);
+  --pill-bg: rgba(255, 255, 255, 0.88);
+  --card-subtle-bg: rgba(255, 255, 255, 0.72);
+}
+
+:root[data-theme='dark'] {
+  --bg-canvas: #0f1720;
+  --bg-muted: #14202c;
+  --surface-base: rgba(18, 28, 39, 0.86);
+  --surface-strong: rgba(22, 34, 47, 0.94);
+  --surface-dark: #edf2f7;
+  --surface-dark-muted: #d7dee7;
+  --border-subtle: rgba(226, 232, 240, 0.08);
+  --border-strong: rgba(226, 232, 240, 0.16);
+  --text-strong: #eef4fb;
+  --text-main: #d6dee8;
+  --text-muted: #91a0b2;
+  --text-soft: #738398;
+  --accent-1: #5ea7e2;
+  --accent-2: #72c0f1;
+  --accent-warm: #d7a24c;
+  --accent-success: #4fb88a;
+  --accent-danger: #e07d73;
+  --soft-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  --glow-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  --success-bg: rgba(79, 184, 138, 0.14);
+  --danger-bg: rgba(224, 125, 115, 0.14);
+  --theme-toggle-active-bg: rgba(255, 255, 255, 0.12);
+  --theme-toggle-active-fg: var(--text-strong);
+  --theme-toggle-bg: rgba(18, 28, 39, 0.92);
+  --button-dark-bg: rgba(255, 255, 255, 0.08);
+  --button-dark-border: rgba(255, 255, 255, 0.1);
+  --button-dark-fg: var(--text-strong);
+  --button-dark-hover-bg: rgba(255, 255, 255, 0.14);
+  --pill-bg: rgba(22, 34, 47, 0.92);
+  --card-subtle-bg: rgba(22, 34, 47, 0.84);
 }
 
 * {
@@ -29,12 +84,38 @@ body,
 }
 
 body {
-  font-family: 'Space Grotesk', sans-serif;
-  color: var(--ink-main);
+  font-family: 'IBM Plex Sans', sans-serif;
+  color: var(--text-main);
   background:
-    radial-gradient(circle at 8% 12%, rgba(0, 240, 255, 0.1), transparent 32%),
-    radial-gradient(circle at 90% 22%, rgba(176, 38, 255, 0.1), transparent 35%),
-    linear-gradient(180deg, var(--bg-darker) 0%, #080808 55%, var(--bg-dark) 100%);
+    radial-gradient(circle at top left, rgba(15, 108, 189, 0.08), transparent 32%),
+    radial-gradient(circle at bottom right, rgba(199, 138, 44, 0.08), transparent 28%),
+    linear-gradient(180deg, #f6f8fa 0%, var(--bg-canvas) 100%);
+}
+
+:root[data-theme='dark'] body {
+  background:
+    radial-gradient(circle at top left, rgba(94, 167, 226, 0.14), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(215, 162, 76, 0.12), transparent 24%),
+    linear-gradient(180deg, #0c131b 0%, var(--bg-canvas) 100%);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  font-family: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: rgba(15, 108, 189, 0.14);
 }
 
 .app-shell {
@@ -47,10 +128,11 @@ body {
   inset: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
-  background-size: 38px 38px;
-  opacity: 0.5;
+    linear-gradient(rgba(15, 23, 42, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.75), transparent 92%);
+  opacity: 0.55;
 }
 
 .animate-fade-in {

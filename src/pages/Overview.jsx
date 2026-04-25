@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Gauge, Zap, Thermometer, Clock, Activity, Brain, AlertTriangle, RefreshCw, TrendingUp } from 'lucide-react';
-import { fetchDeviceData, fetchDevicePredictions, fetchDeviceFaults } from '../api';
+import { Zap, Clock, Activity, Brain, AlertTriangle, RefreshCw, TrendingUp } from 'lucide-react';
+import { fetchDeviceData, fetchDevicePredictions } from '../api';
 import MetricCard from '../components/MetricCard';
-import PredictionsBadge from '../components/PredictionsBadge';
 import LiveChart from '../components/LiveChart';
 import Breadcrumbs from '../components/Breadcrumbs';
 import LiveIndicator from '../components/LiveIndicator';
@@ -15,7 +14,6 @@ function Overview() {
   const { deviceId } = useParams();
   const [data, setData] = useState([]);
   const [predictions, setPredictions] = useState([]);
-  const [faults, setFaults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [lastUpdated, setLastUpdated] = useState(null);
@@ -25,14 +23,12 @@ function Overview() {
       try {
         setLoading(true);
         setError('');
-        const [dataRes, predsRes, faultsRes] = await Promise.all([
+        const [dataRes, predsRes] = await Promise.all([
           fetchDeviceData(deviceId),
           fetchDevicePredictions(deviceId),
-          fetchDeviceFaults(deviceId),
         ]);
         setData(dataRes.data || []);
         setPredictions(predsRes.data || []);
-        setFaults(faultsRes.data || []);
         setLastUpdated(new Date());
       } catch (err) {
         console.error('Failed to load data', err);
@@ -50,8 +46,7 @@ function Overview() {
   const latest = data.length > 0 ? data[0] : null;
   const uptimeHours = latest ? Math.floor(latest.uptime_seconds / 3600) : 0;
   const averageTemp = latest ? ((latest.temp1 + latest.temp2) / 2).toFixed(1) : '0.0';
-  
-  // Calculate max values for gauges (can be adjusted based on device specs)
+
   const maxRPM = 3000;
   const maxPower = 2000;
   const maxTemp = 100;
@@ -63,7 +58,7 @@ function Overview() {
   return (
     <div className="page-container">
       <Breadcrumbs />
-      
+
       <header className="page-header">
         <div className="header-with-icon">
           <div className="header-icon-wrapper overview">
@@ -86,26 +81,26 @@ function Overview() {
       </header>
 
       {error && <div className="error-banner">{error}</div>}
-      
-      {/* Skeleton Loading State */}
+
       {!latest && loading && (
         <div className="skeleton-grid">
-          {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
+          {[...Array(6)].map((_, index) => (
+            <SkeletonCard key={index} />
+          ))}
         </div>
       )}
 
       {latest && (
         <>
-          {/* Quick Stats Gauges */}
           <section className="gauges-section">
             <div className="gauges-grid">
               <div className="gauge-card">
-                <GaugeMeter 
-                  value={latest.rpm || 0} 
-                  max={maxRPM} 
-                  unit="RPM" 
-                  label="Motor Speed" 
-                  color="#38bdf8"
+                <GaugeMeter
+                  value={latest.rpm || 0}
+                  max={maxRPM}
+                  unit="RPM"
+                  label="Motor Speed"
+                  color="var(--accent-1)"
                   size={140}
                 />
                 <div className="gauge-details">
@@ -114,14 +109,14 @@ function Overview() {
                   </span>
                 </div>
               </div>
-              
+
               <div className="gauge-card">
-                <GaugeMeter 
-                  value={latest.power?.toFixed(0) || 0} 
-                  max={maxPower} 
-                  unit="W" 
-                  label="Power" 
-                  color="#f59e0b"
+                <GaugeMeter
+                  value={latest.power?.toFixed(0) || 0}
+                  max={maxPower}
+                  unit="W"
+                  label="Power"
+                  color="var(--accent-warm)"
                   size={140}
                 />
                 <div className="gauge-details">
@@ -130,14 +125,14 @@ function Overview() {
                   <span className="gauge-detail-value">{latest.current?.toFixed(2)}A</span>
                 </div>
               </div>
-              
+
               <div className="gauge-card">
-                <GaugeMeter 
-                  value={averageTemp} 
-                  max={maxTemp} 
-                  unit="°C" 
-                  label="Temperature" 
-                  color="#ef4444"
+                <GaugeMeter
+                  value={averageTemp}
+                  max={maxTemp}
+                  unit="deg C"
+                  label="Temperature"
+                  color="var(--accent-danger)"
                   size={140}
                 />
                 <div className="gauge-details">
@@ -146,7 +141,7 @@ function Overview() {
                   </span>
                 </div>
               </div>
-              
+
               <div className="gauge-card uptime-card">
                 <div className="uptime-display">
                   <Clock size={48} className="uptime-icon" />
@@ -157,7 +152,6 @@ function Overview() {
             </div>
           </section>
 
-          {/* Key Metrics Grid */}
           <section className="metrics-section">
             <h2>Quick Stats</h2>
             <div className="metrics-grid compact">
@@ -166,18 +160,17 @@ function Overview() {
               <MetricCard title="Power Factor" value={latest.power_factor?.toFixed(2) ?? '--'} unit="" icon={TrendingUp} delay="delay-2" />
               <MetricCard title="Frequency" value={latest.frequency?.toFixed(1) ?? '--'} unit="Hz" icon={Zap} delay="delay-2" />
               <MetricCard title="Pulse Count" value={latest.pulse ?? '--'} unit="" icon={Activity} delay="delay-3" />
-              <MetricCard 
-                title="Active Faults" 
-                value={latest.fault_overcurrent || latest.fault_overtemp || latest.fault_stall || latest.fault_vibration ? 'YES' : 'NO'} 
-                unit="" 
-                icon={AlertTriangle} 
+              <MetricCard
+                title="Active Faults"
+                value={latest.fault_overcurrent || latest.fault_overtemp || latest.fault_stall || latest.fault_vibration ? 'YES' : 'NO'}
+                unit=""
+                icon={AlertTriangle}
                 delay="delay-3"
                 isFault={latest.fault_overcurrent || latest.fault_overtemp || latest.fault_stall || latest.fault_vibration}
               />
             </div>
           </section>
 
-          {/* AI Insights Summary */}
           <section className="ai-summary-section">
             <div className="section-header-with-icon">
               <Brain size={24} />
@@ -186,23 +179,22 @@ function Overview() {
             <div className="panel">
               {predictions.length > 0 ? (
                 <div className="predictions-preview">
-                  {predictions.slice(0, 3).map((pred, idx) => (
-                    <div key={idx} className={`prediction-pill severity-${pred.severity}`}>
+                  {predictions.slice(0, 3).map((pred, index) => (
+                    <div key={pred.id ?? index} className={`prediction-pill severity-${pred.severity ?? 'low'}`}>
                       <span className="pred-type">{pred.prediction_type?.replace('_', ' ')}</span>
-                      <span className="pred-confidence">{Math.round(pred.confidence * 100)}% confidence</span>
+                      <span className="pred-confidence">{Math.round((pred.confidence ?? 0) * 100)}% confidence</span>
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="status-ok-message">
-                  <span className="status-dot"></span>
+                  <span className="status-dot" />
                   All systems normal - no predictions at this time
                 </div>
               )}
             </div>
           </section>
 
-          {/* Live Chart */}
           <section className="chart-section">
             <h2>Telemetry History</h2>
             <div className="panel chart-panel">

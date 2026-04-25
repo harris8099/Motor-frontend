@@ -1,7 +1,6 @@
-import React from 'react';
 import './GaugeMeter.css';
 
-function GaugeMeter({ value, max, unit, label, color = '#38bdf8', size = 120 }) {
+function GaugeMeter({ value, max, unit, label, color = 'var(--accent-1)', size = 120 }) {
   const percentage = Math.min((value / max) * 100, 100);
   const strokeWidth = 10;
   const radius = (size - strokeWidth) / 2;
@@ -10,8 +9,8 @@ function GaugeMeter({ value, max, unit, label, color = '#38bdf8', size = 120 }) 
 
   // Determine color based on percentage
   let gaugeColor = color;
-  if (percentage > 80) gaugeColor = '#ef4444';
-  else if (percentage > 60) gaugeColor = '#eab308';
+  if (percentage > 80) gaugeColor = 'var(--accent-danger)';
+  else if (percentage > 60) gaugeColor = 'var(--accent-warm)';
 
   return (
     <div className="gauge-meter" style={{ width: size, height: size + 30 }}>

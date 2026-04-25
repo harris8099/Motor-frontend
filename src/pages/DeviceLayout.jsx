@@ -1,6 +1,6 @@
-import React from 'react';
 import { Outlet, NavLink, useParams, Link } from 'react-router-dom';
 import { ChevronLeft, Cpu } from 'lucide-react';
+import ThemeToggle from '../components/ThemeToggle';
 import { 
   IconOverview, IconAI, IconPower, IconTemp, 
   IconVibration, IconFaults, IconSettings, IconTerminal 
@@ -25,10 +25,13 @@ function DeviceLayout() {
     <div className="device-layout">
       <aside className="sidebar">
         <div className="sidebar-header">
-          <Link to="/" className="back-link">
-            <ChevronLeft size={20} />
-            Back to Devices
-          </Link>
+          <div className="sidebar-header-row">
+            <Link to="/" className="back-link">
+              <ChevronLeft size={20} />
+              Back to Devices
+            </Link>
+            <ThemeToggle />
+          </div>
           <div className="device-info">
             <Cpu size={24} style={{ color: 'var(--accent-1)' }} />
             <span className="device-label">{deviceId}</span>

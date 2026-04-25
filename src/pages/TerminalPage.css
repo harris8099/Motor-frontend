@@ -1,7 +1,7 @@
 .terminal-container {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 4rem); /* Fill viewport minus padding */
+  height: calc(100vh - 4rem);
 }
 
 .terminal-controls {
@@ -15,9 +15,9 @@
   gap: 0.4rem;
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
-  color: var(--ink-muted);
+  color: var(--text-muted);
   padding: 0.5rem 0.8rem;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   font-weight: 600;
@@ -30,29 +30,30 @@
 }
 
 .control-btn.active {
-  background: rgba(0, 240, 255, 0.1);
+  background: rgba(15, 108, 189, 0.1);
   border-color: var(--accent-1);
   color: var(--accent-1);
 }
 
 .control-btn.primary {
-  background: linear-gradient(135deg, var(--accent-1) 0%, var(--accent-2) 100%);
-  color: #000;
+  background: var(--accent-1);
+  color: #fff;
   border: none;
 }
+
 .control-btn.primary:hover {
-  opacity: 0.9;
+  opacity: 0.92;
 }
 
 .terminal-window {
   flex: 1;
-  background: rgba(5, 5, 5, 0.95);
+  background: #0f1720;
   border: 1px solid var(--panel-border);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.24);
   margin-top: 1rem;
 }
 
@@ -61,8 +62,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.6rem 1rem;
-  background: #111;
-  border-bottom: 1px solid #222;
+  background: #121a24;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .window-dots {
@@ -81,24 +82,24 @@
 .dot.green { background: #27c93f; }
 
 .window-title {
-  color: #888;
-  font-family: monospace;
+  color: #8fa0b2;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 0.85rem;
 }
 
 .window-status {
-  min-width: 100px;
+  min-width: 120px;
   text-align: right;
 }
 
 .status-indicator {
-  font-family: monospace;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 0.8rem;
   font-weight: 600;
 }
 
 .status-indicator.blinking {
-  color: #00f0ff;
+  color: var(--accent-1);
   animation: terminalBlink 1.5s infinite;
 }
 
@@ -115,19 +116,19 @@
   flex: 1;
   padding: 1rem;
   overflow-y: auto;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-family: 'IBM Plex Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
   scroll-behavior: smooth;
 }
 
 .terminal-empty {
-  color: #444;
+  color: #6f8094;
   padding: 2rem 0;
 }
 
 .cursor-blink::after {
-  content: '█';
+  content: '_';
   animation: cursorBlink 1s infinite;
-  color: #00f0ff;
+  color: var(--accent-1);
   margin-left: 5px;
 }
 
@@ -138,7 +139,7 @@
 
 .log-entry {
   margin-bottom: 1.5rem;
-  border-left: 2px solid #222;
+  border-left: 2px solid rgba(255, 255, 255, 0.08);
   padding-left: 1rem;
   transition: all 0.3s;
 }
@@ -155,16 +156,16 @@
 }
 
 .log-timestamp {
-  color: #666;
+  color: #7f91a5;
 }
 
 .log-source {
-  color: #b026ff;
-  font-weight: bold;
+  color: var(--accent-warm);
+  font-weight: 700;
 }
 
 .log-code {
-  color: #00f0ff;
+  color: #d9e4ef;
   margin: 0;
   font-size: 0.85rem;
   line-height: 1.5;
@@ -172,17 +173,16 @@
   word-break: break-all;
 }
 
-/* Custom Scrollbar for Terminal */
 .terminal-output::-webkit-scrollbar {
   width: 10px;
 }
 
 .terminal-output::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: #101820;
 }
 
 .terminal-output::-webkit-scrollbar-thumb {
-  background: #222;
+  background: #304152;
   border-radius: 5px;
 }
 
@@ -192,6 +192,6 @@
 
 @media (max-width: 620px) {
   .terminal-controls {
-    display: none; /* Hide complex controls on very small screens, or put them in a menu */
+    display: none;
   }
 }
