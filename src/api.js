@@ -67,7 +67,8 @@ export async function fetchPowerForecast(deviceId, electricityRate = 0.12, hours
 
 // Devices API
 export async function fetchDevices() {
-  const res = await fetch(`${API_BASE_URL}/devices`, { headers });
+  // Include inactive devices so toggled-off devices don't disappear
+  const res = await fetch(`${API_BASE_URL}/devices?include_inactive=true`, { headers });
   if (!res.ok) throw new Error('Failed to fetch devices');
   return res.json();
 }
