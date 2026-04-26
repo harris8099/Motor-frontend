@@ -52,6 +52,12 @@ export async function triggerLocalAnalysis(deviceId) {
   return res.json();
 }
 
+export async function fetchLatestAIResult(deviceId) {
+  const res = await fetch(`${API_BASE_URL}/ai/latest/${deviceId}`, { headers });
+  if (!res.ok) throw new Error('Failed to fetch latest AI result');
+  return res.json();
+}
+
 
 export async function fetchPowerForecast(deviceId, electricityRate = 0.12, hours = 24) {
   const res = await fetch(`${API_BASE_URL}/forecast/${deviceId}?electricity_rate=${electricityRate}&hours=${hours}`, { headers });

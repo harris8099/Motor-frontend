@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { AlertTriangle, Brain, RefreshCw, Sparkles, TrendingUp, MessageSquare, Zap } from 'lucide-react';
-import { fetchDevicePredictions, triggerCloudAnalysis, setAIMode } from '../api';
+import { fetchDevicePredictions, triggerCloudAnalysis, setAIMode, fetchLatestAIResult } from '../api';
 import Breadcrumbs from '../components/Breadcrumbs';
 import LiveIndicator from '../components/LiveIndicator';
 import PredictionsBadge from '../components/PredictionsBadge';
@@ -46,22 +46,50 @@ function getSummary(predictions) {
 
 const COOLDOWN_SECONDS = 30;
 
+// Renders inline markdown: **bold**, *italic*, `code`
+function RenderMarkdown({ text }) {
+  if (!text) return null;
+  // Split into paragraphs first
+  const paragraphs = text.split(/\n+/).filter(Boolean);
+  return (
+    <>
+      {paragraphs.map((para, pi) => {
+        // Split on **bold**, *italic*, `code`
+        const parts = para.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g);
+        return (
+          <p key={pi} style={{ margin: pi === 0 ? 0 : '0.5rem 0 0 0' }}>
+            {parts.map((part, i) => {
+              if (part.startsWith('**') && part.endsWith('**'))
+                return <strong key={i}>{part.slice(2, -2)}</strong>;
+              if (part.startsWith('*') && part.endsWith('*'))
+                return <em key={i}>{part.slice(1, -1)}</em>;
+              if (part.startsWith('`') && part.endsWith('`'))
+                return <code key={i} style={{ background: 'rgba(255,255,255,0.08)', padding: '0 4px', borderRadius: '3px', fontFamily: 'monospace' }}>{part.slice(1, -1)}</code>;
+              return part;
+            })}
+          </p>
+        );
+      })}
+    </>
+  );
+}
+
 function AIPage() {
   const { deviceId } = useParams();
   const [predictions, setPredictions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [runningAnalysis, setRunningAnalysis] = useState(false);
   const [error, setError] = useState('');
-  const [analysisMessage, setAnalysisMessage] = useState('');
-  const [analysisSuccess, setAnalysisSuccess] = useState(null); // true | false | null
-  const [analysisResult, setAnalysisResult] = useState(null); // Store AI response
+  // Separate state for each AI result type — both show simultaneously
+  const [commentaryResult, setCommentaryResult] = useState(null);
+  const [predictionResult, setPredictionResult] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
 
   // Cooldown state
-  const [cooldown, setCooldown] = useState(0); // seconds remaining
+  const [cooldown, setCooldown] = useState(0);
   const cooldownRef = useRef(null);
 
-  // Mode toggle state — default to commentary
+  // Mode toggle
   const [aiMode, setAiModeState] = useState('commentary');
   const [modeChanging, setModeChanging] = useState(false);
 
@@ -70,16 +98,29 @@ function AIPage() {
     if (cooldownRef.current) clearInterval(cooldownRef.current);
     cooldownRef.current = setInterval(() => {
       setCooldown((prev) => {
-        if (prev <= 1) {
-          clearInterval(cooldownRef.current);
-          return 0;
-        }
+        if (prev <= 1) { clearInterval(cooldownRef.current); return 0; }
         return prev - 1;
       });
     }, 1000);
   };
 
   useEffect(() => () => clearInterval(cooldownRef.current), []);
+
+  // Load both latest results from DB on mount / device change
+  useEffect(() => {
+    setCommentaryResult(null);
+    setPredictionResult(null);
+    fetchLatestAIResult(deviceId)
+      .then(res => {
+        const norm = (row) => row ? {
+          type: row.prediction_type, confidence: row.confidence,
+          severity: row.severity, details: row.details, timestamp: row.predicted_at,
+        } : null;
+        setCommentaryResult(norm(res?.commentary));
+        setPredictionResult(norm(res?.prediction));
+      })
+      .catch(() => {});
+  }, [deviceId]);
 
   const loadPredictions = async () => {
     try {
@@ -108,23 +149,35 @@ function AIPage() {
   const stats = useMemo(() => getSummary(predictions), [predictions]);
   const recentPredictions = useMemo(() => predictions.slice(0, 6), [predictions]);
 
+  const [analysisMessage, setAnalysisMessage] = useState('');
+  const [analysisSuccess, setAnalysisSuccess] = useState(null);
+  const [modeMessage, setModeMessage] = useState('');
+
   const handleRunAnalysis = async () => {
     if (cooldown > 0 || runningAnalysis) return;
     try {
       setRunningAnalysis(true);
       setAnalysisMessage('');
       setAnalysisSuccess(null);
-      setAnalysisResult(null); // Clear previous result
       const result = await triggerCloudAnalysis(deviceId);
       setAnalysisSuccess(result?.success !== false);
       setAnalysisMessage(result?.message || 'Cloud AI analysis completed.');
-      setAnalysisResult(result?.analysis || null); // Store AI analysis
+      if (result?.analysis) {
+        const norm = {
+          type: result.analysis.type,
+          confidence: result.analysis.confidence,
+          severity: result.analysis.severity,
+          details: result.analysis.details,
+          timestamp: new Date().toISOString(),
+        };
+        if (result.analysis.type === 'ai_comment') setCommentaryResult(norm);
+        else if (result.analysis.type === 'ai_analysis') setPredictionResult(norm);
+      }
       if (result?.success !== false) await loadPredictions();
     } catch (err) {
       console.error('Failed to run Cloud AI analysis', err);
       setAnalysisSuccess(false);
       setAnalysisMessage('Cloud AI analysis could not be completed. Check backend configuration for API keys.');
-      setAnalysisResult(null);
     } finally {
       setRunningAnalysis(false);
       startCooldown();
@@ -134,14 +187,13 @@ function AIPage() {
   const handleModeChange = async (newMode) => {
     if (newMode === aiMode || modeChanging) return;
     setModeChanging(true);
+    setModeMessage('');
     try {
       await setAIMode(newMode);
       setAiModeState(newMode);
-      setAnalysisMessage(`AI mode switched to "${newMode}".`);
-      setAnalysisSuccess(true);
+      setModeMessage(`Mode switched to "${newMode}" — run analysis to see new results.`);
     } catch {
-      setAnalysisMessage('Failed to switch AI mode. Check backend connection.');
-      setAnalysisSuccess(false);
+      setModeMessage('Failed to switch AI mode. Check backend connection.');
     } finally {
       setModeChanging(false);
     }
@@ -177,49 +229,89 @@ function AIPage() {
       </header>
 
       {error && <div className="error-banner">{error}</div>}
-      {analysisMessage && <div className={analysisBannerClass}>{analysisMessage}</div>}
+      {analysisMessage && <div className={analysisSuccess === false ? 'error-banner' : 'loading-banner'}>{analysisMessage}</div>}
+      {modeMessage && <div style={{ padding: '0.6rem 1rem', marginBottom: '0.5rem', borderRadius: '8px', fontSize: '0.85rem', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--panel-border)', color: 'var(--text-main)' }}>{modeMessage}</div>}
 
-      {/* AI Analysis Result Display */}
-      {analysisResult && (
-        <section className="ai-result-section">
-          <div className="panel ai-result-panel">
-            <div className="ai-result-header">
-              <Sparkles size={18} />
-              <h3>AI Analysis Result</h3>
-              <span className={`severity-badge ${analysisResult.severity}`}>
-                {analysisResult.severity?.toUpperCase()}
-              </span>
-              <span className="confidence-badge">
-                {Math.round(analysisResult.confidence * 100)}% confidence
-              </span>
-            </div>
-            <div className="ai-result-content">
-              <p className="prediction-type">{formatPredictionType(analysisResult.type)}</p>
-              {analysisResult.details?.comment && (
-                <p className="ai-comment">{analysisResult.details.comment}</p>
-              )}
-              {analysisResult.details?.failure_probability_24h !== undefined && (
-                <div className="ai-metrics">
-                  <div className="metric">
-                    <span className="metric-label">Failure Probability (24h)</span>
-                    <span className="metric-value">{analysisResult.details.failure_probability_24h}%</span>
-                  </div>
-                  {analysisResult.details.likely_failure_mode && (
-                    <div className="metric">
-                      <span className="metric-label">Likely Failure Mode</span>
-                      <span className="metric-value">{analysisResult.details.likely_failure_mode}</span>
-                    </div>
-                  )}
-                  {analysisResult.details.estimated_rul_days !== undefined && (
-                    <div className="metric">
-                      <span className="metric-label">Estimated RUL</span>
-                      <span className="metric-value">{analysisResult.details.estimated_rul_days} days</span>
-                    </div>
-                  )}
+      {/* ── AI Results — both panels show independently ──────────────────── */}
+      {(commentaryResult || predictionResult) && (
+        <section className="ai-result-section" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+
+          {/* Commentary panel */}
+          {commentaryResult && (
+            <div className="panel ai-result-panel">
+              <div className="ai-result-header">
+                <MessageSquare size={18} />
+                <h3>AI Expert Commentary</h3>
+                <span className={`severity-badge ${commentaryResult.severity}`}>
+                  {commentaryResult.severity?.toUpperCase()}
+                </span>
+                <span className="confidence-badge">
+                  {Math.round(commentaryResult.confidence * 100)}% confidence
+                </span>
+              </div>
+              <div className="ai-result-content">
+                <div className="ai-comment">
+                  <RenderMarkdown text={commentaryResult.details?.comment} />
                 </div>
+              </div>
+              {commentaryResult.timestamp && (
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted, #888)', marginTop: '0.5rem', textAlign: 'right' }}>
+                  Last analyzed: {new Date(commentaryResult.timestamp).toLocaleString()}
+                </p>
               )}
             </div>
-          </div>
+          )}
+
+          {/* Prediction panel */}
+          {predictionResult && (
+            <div className="panel ai-result-panel">
+              <div className="ai-result-header">
+                <Sparkles size={18} />
+                <h3>AI Failure Prediction</h3>
+                <span className={`severity-badge ${predictionResult.severity}`}>
+                  {predictionResult.severity?.toUpperCase()}
+                </span>
+                <span className="confidence-badge">
+                  {Math.round(predictionResult.confidence * 100)}% confidence
+                </span>
+              </div>
+              <div className="ai-result-content">
+                {predictionResult.details?.failure_probability_24h !== undefined && (
+                  <div className="ai-metrics">
+                    <div className="metric">
+                      <span className="metric-label">Failure Probability (24h)</span>
+                      <span className="metric-value">{predictionResult.details.failure_probability_24h}%</span>
+                    </div>
+                    {predictionResult.details.likely_failure_mode && (
+                      <div className="metric">
+                        <span className="metric-label">Likely Failure Mode</span>
+                        <span className="metric-value">{predictionResult.details.likely_failure_mode}</span>
+                      </div>
+                    )}
+                    {predictionResult.details.estimated_rul_days !== undefined && (
+                      <div className="metric">
+                        <span className="metric-label">Estimated RUL</span>
+                        <span className="metric-value">{predictionResult.details.estimated_rul_days} days</span>
+                      </div>
+                    )}
+                    {predictionResult.details.maintenance_actions?.length > 0 && (
+                      <div className="metric" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.25rem' }}>
+                        <span className="metric-label">Maintenance Actions</span>
+                        <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.85rem', color: 'var(--text-main)', lineHeight: 1.6 }}>
+                          {predictionResult.details.maintenance_actions.map((a, i) => <li key={i}>{a}</li>)}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              {predictionResult.timestamp && (
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted, #888)', marginTop: '0.5rem', textAlign: 'right' }}>
+                  Last analyzed: {new Date(predictionResult.timestamp).toLocaleString()}
+                </p>
+              )}
+            </div>
+          )}
         </section>
       )}
 

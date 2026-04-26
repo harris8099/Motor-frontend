@@ -2,9 +2,9 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   Zap, Clock, Activity, Brain, AlertTriangle, RefreshCw,
-  TrendingUp, Heart, Shield, Wrench, BarChart2, Sparkles, Cpu,
+  TrendingUp, Heart, Shield, Wrench, BarChart2, Sparkles, Cpu, MessageSquare,
 } from 'lucide-react';
-import { fetchDeviceData, fetchDevicePredictions, triggerCloudAnalysis, triggerLocalAnalysis } from '../api';
+import { fetchDeviceData, fetchDevicePredictions, triggerCloudAnalysis, triggerLocalAnalysis, fetchLatestAIResult } from '../api';
 import MetricCard from '../components/MetricCard';
 import LiveChart from '../components/LiveChart';
 import Breadcrumbs from '../components/Breadcrumbs';
@@ -97,6 +97,46 @@ function formatPredType(type) {
   return labels[type] ?? type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
+// ── localStorage helpers (same pattern as AIPage) ──────────────────────────
+const OV_RESULT_KEY = (id) => `ov_ai_result_${id}`;
+function readLS(key, fallback = null) {
+  try { const v = localStorage.getItem(key); return v !== null ? JSON.parse(v) : fallback; }
+  catch { return fallback; }
+}
+function writeLS(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+}
+function clearLS(key) {
+  try { localStorage.removeItem(key); } catch {}
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Renders inline markdown: **bold**, *italic*, `code` ─────────────────────
+function RenderMarkdown({ text }) {
+  if (!text) return null;
+  const paragraphs = text.split(/\n+/).filter(Boolean);
+  return (
+    <>
+      {paragraphs.map((para, pi) => {
+        const parts = para.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g);
+        return (
+          <p key={pi} style={{ margin: pi === 0 ? 0 : '0.5rem 0 0 0' }}>
+            {parts.map((part, i) => {
+              if (part.startsWith('**') && part.endsWith('**'))
+                return <strong key={i}>{part.slice(2, -2)}</strong>;
+              if (part.startsWith('*') && part.endsWith('*'))
+                return <em key={i}>{part.slice(1, -1)}</em>;
+              if (part.startsWith('`') && part.endsWith('`'))
+                return <code key={i} style={{ background: 'rgba(255,255,255,0.08)', padding: '0 4px', borderRadius: '3px', fontFamily: 'monospace' }}>{part.slice(1, -1)}</code>;
+              return part;
+            })}
+          </p>
+        );
+      })}
+    </>
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 function Overview() {
   const { deviceId } = useParams();
@@ -114,8 +154,9 @@ function Overview() {
   const cooldownRef = useRef(null);
   const localCooldownRef = useRef(null);
 
-  // AI Analysis Result
-  const [analysisResult, setAnalysisResult] = useState(null);
+  // AI Analysis Results — both types tracked independently
+  const [commentaryResult, setCommentaryResult] = useState(null);
+  const [predictionResult, setPredictionResult] = useState(null);
 
   const startCooldown = () => {
     setCooldown(30);
@@ -152,13 +193,36 @@ function Overview() {
     };
   }, []);
 
+  // Load both latest AI results from DB on mount / device change
+  useEffect(() => {
+    setCommentaryResult(null);
+    setPredictionResult(null);
+    fetchLatestAIResult(deviceId)
+      .then(res => {
+        const norm = (row) => row ? {
+          type: row.prediction_type, confidence: row.confidence,
+          severity: row.severity, details: row.details, timestamp: row.predicted_at,
+        } : null;
+        setCommentaryResult(norm(res?.commentary));
+        setPredictionResult(norm(res?.prediction));
+      })
+      .catch(() => {});
+  }, [deviceId]);
+
   const handleRunAnalysis = async () => {
     if (cooldown > 0 || runningAnalysis) return;
     try {
       setRunningAnalysis(true);
-      setAnalysisResult(null);
       const result = await triggerCloudAnalysis(deviceId);
-      setAnalysisResult(result?.analysis || null);
+      if (result?.analysis) {
+        const norm = {
+          type: result.analysis.type, confidence: result.analysis.confidence,
+          severity: result.analysis.severity, details: result.analysis.details,
+          timestamp: new Date().toISOString(),
+        };
+        if (result.analysis.type === 'ai_comment') setCommentaryResult(norm);
+        else if (result.analysis.type === 'ai_analysis') setPredictionResult(norm);
+      }
       const predsRes = await fetchDevicePredictions(deviceId);
       setPredictions(predsRes.data || []);
       setLastUpdated(new Date());
@@ -501,31 +565,80 @@ function Overview() {
               </div>
             </div>
 
-            {/* AI Analysis Result Display */}
-            {analysisResult && (
-              <div className="ai-result-section">
-                <div className="panel ai-result-panel" style={{ marginBottom: '1rem' }}>
-                  <div className="ai-result-header" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--panel-border)' }}>
-                    <Sparkles size={16} />
-                    <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-strong)', flex: 1 }}>Cloud AI Result</h3>
-                    <span className={`severity-badge ${analysisResult.severity}`} style={{ fontSize: '0.7rem', fontWeight: 600, padding: '0.25rem 0.6rem', borderRadius: '20px', textTransform: 'uppercase' }}>
-                      {analysisResult.severity?.toUpperCase()}
-                    </span>
-                    <span className="confidence-badge" style={{ fontSize: '0.75rem', fontWeight: 500, padding: '0.25rem 0.6rem', background: 'rgba(15, 108, 189, 0.1)', color: 'var(--accent-1)', borderRadius: '20px' }}>
-                      {Math.round(analysisResult.confidence * 100)}% confidence
-                    </span>
-                  </div>
-                  <div className="ai-result-content">
-                    <p style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-strong)', margin: '0 0 0.5rem 0', textTransform: 'capitalize' }}>
-                      {formatPredType(analysisResult.type)}
-                    </p>
-                    {analysisResult.details?.comment && (
-                      <p className="ai-comment" style={{ fontSize: '0.9rem', lineHeight: 1.5, color: 'var(--text-main)', margin: 0, padding: '0.5rem', background: 'var(--panel-bg)', borderRadius: '6px', borderLeft: '3px solid var(--accent-1)' }}>
-                        {analysisResult.details.comment}
+            {/* ── AI Results — both panels show independently ──────────── */}
+            {(commentaryResult || predictionResult) && (
+              <div className="ai-result-section" style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+
+                {commentaryResult && (
+                  <div className="panel ai-result-panel" style={{ marginBottom: 0 }}>
+                    <div className="ai-result-header" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--panel-border)' }}>
+                      <MessageSquare size={16} />
+                      <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-strong)', flex: 1 }}>AI Commentary</h3>
+                      <span className={`severity-badge ${commentaryResult.severity}`} style={{ fontSize: '0.7rem', fontWeight: 600, padding: '0.25rem 0.6rem', borderRadius: '20px', textTransform: 'uppercase' }}>
+                        {commentaryResult.severity?.toUpperCase()}
+                      </span>
+                      <span className="confidence-badge" style={{ fontSize: '0.75rem', fontWeight: 500, padding: '0.25rem 0.6rem', background: 'rgba(15,108,189,0.1)', color: 'var(--accent-1)', borderRadius: '20px' }}>
+                        {Math.round(commentaryResult.confidence * 100)}% confidence
+                      </span>
+                    </div>
+                    <div className="ai-comment" style={{ fontSize: '0.9rem', lineHeight: 1.6, color: 'var(--text-main)', padding: '0.5rem', background: 'var(--panel-bg)', borderRadius: '6px', borderLeft: '3px solid var(--accent-1)' }}>
+                      <RenderMarkdown text={commentaryResult.details?.comment} />
+                    </div>
+                    {commentaryResult.timestamp && (
+                      <p style={{ fontSize: '0.72rem', color: 'var(--text-muted,#888)', marginTop: '0.5rem', textAlign: 'right' }}>
+                        Last analyzed: {new Date(commentaryResult.timestamp).toLocaleString()}
                       </p>
                     )}
                   </div>
-                </div>
+                )}
+
+                {predictionResult && (
+                  <div className="panel ai-result-panel" style={{ marginBottom: 0 }}>
+                    <div className="ai-result-header" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--panel-border)' }}>
+                      <Sparkles size={16} />
+                      <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-strong)', flex: 1 }}>AI Failure Prediction</h3>
+                      <span className={`severity-badge ${predictionResult.severity}`} style={{ fontSize: '0.7rem', fontWeight: 600, padding: '0.25rem 0.6rem', borderRadius: '20px', textTransform: 'uppercase' }}>
+                        {predictionResult.severity?.toUpperCase()}
+                      </span>
+                      <span className="confidence-badge" style={{ fontSize: '0.75rem', fontWeight: 500, padding: '0.25rem 0.6rem', background: 'rgba(15,108,189,0.1)', color: 'var(--accent-1)', borderRadius: '20px' }}>
+                        {Math.round(predictionResult.confidence * 100)}% confidence
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', padding: '0.5rem', background: 'var(--panel-bg)', borderRadius: '6px', borderLeft: '3px solid var(--accent-warm,#f90)' }}>
+                      {predictionResult.details?.failure_probability_24h !== undefined && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted,#aaa)' }}>Failure Probability (24h)</span>
+                          <span style={{ fontWeight: 700, color: 'var(--accent-danger,#e05)' }}>{predictionResult.details.failure_probability_24h}%</span>
+                        </div>
+                      )}
+                      {predictionResult.details?.likely_failure_mode && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted,#aaa)' }}>Likely Failure Mode</span>
+                          <span style={{ fontWeight: 600, color: 'var(--text-strong)', textAlign: 'right' }}>{predictionResult.details.likely_failure_mode}</span>
+                        </div>
+                      )}
+                      {predictionResult.details?.estimated_rul_days !== undefined && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted,#aaa)' }}>Estimated RUL</span>
+                          <span style={{ fontWeight: 600, color: 'var(--accent-success,#1a9)' }}>{predictionResult.details.estimated_rul_days} days</span>
+                        </div>
+                      )}
+                      {predictionResult.details?.maintenance_actions?.length > 0 && (
+                        <div>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted,#aaa)', display: 'block', marginBottom: '0.2rem' }}>Maintenance Actions</span>
+                          <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.82rem', color: 'var(--text-main)', lineHeight: 1.5 }}>
+                            {predictionResult.details.maintenance_actions.map((a, i) => <li key={i}>{a}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                    {predictionResult.timestamp && (
+                      <p style={{ fontSize: '0.72rem', color: 'var(--text-muted,#888)', marginTop: '0.5rem', textAlign: 'right' }}>
+                        Last analyzed: {new Date(predictionResult.timestamp).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
