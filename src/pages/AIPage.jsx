@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { AlertTriangle, Brain, RefreshCw, Sparkles, TrendingUp } from 'lucide-react';
-import { fetchDevicePredictions, triggerGeminiAnalysis } from '../api';
+import { AlertTriangle, Brain, RefreshCw, Sparkles, TrendingUp, MessageSquare, Zap } from 'lucide-react';
+import { fetchDevicePredictions, triggerGeminiAnalysis, setGeminiMode } from '../api';
 import Breadcrumbs from '../components/Breadcrumbs';
 import LiveIndicator from '../components/LiveIndicator';
 import PredictionsBadge from '../components/PredictionsBadge';
@@ -27,7 +27,6 @@ function formatPredictionTime(value) {
   if (!value) {
     return 'Timestamp unavailable';
   }
-
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? 'Timestamp unavailable' : parsed.toLocaleString();
 }
@@ -45,6 +44,8 @@ function getSummary(predictions) {
   };
 }
 
+const COOLDOWN_SECONDS = 30;
+
 function AIPage() {
   const { deviceId } = useParams();
   const [predictions, setPredictions] = useState([]);
@@ -52,7 +53,32 @@ function AIPage() {
   const [runningAnalysis, setRunningAnalysis] = useState(false);
   const [error, setError] = useState('');
   const [analysisMessage, setAnalysisMessage] = useState('');
+  const [analysisSuccess, setAnalysisSuccess] = useState(null); // true | false | null
   const [lastUpdated, setLastUpdated] = useState(null);
+
+  // Cooldown state
+  const [cooldown, setCooldown] = useState(0); // seconds remaining
+  const cooldownRef = useRef(null);
+
+  // Mode toggle state — default to commentary
+  const [geminiMode, setGeminiModeState] = useState('commentary');
+  const [modeChanging, setModeChanging] = useState(false);
+
+  const startCooldown = () => {
+    setCooldown(COOLDOWN_SECONDS);
+    if (cooldownRef.current) clearInterval(cooldownRef.current);
+    cooldownRef.current = setInterval(() => {
+      setCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(cooldownRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  useEffect(() => () => clearInterval(cooldownRef.current), []);
 
   const loadPredictions = async () => {
     try {
@@ -82,19 +108,44 @@ function AIPage() {
   const recentPredictions = useMemo(() => predictions.slice(0, 6), [predictions]);
 
   const handleRunAnalysis = async () => {
+    if (cooldown > 0 || runningAnalysis) return;
     try {
       setRunningAnalysis(true);
       setAnalysisMessage('');
+      setAnalysisSuccess(null);
       const result = await triggerGeminiAnalysis(deviceId);
+      setAnalysisSuccess(result?.success !== false);
       setAnalysisMessage(result?.message || 'Gemini analysis completed.');
-      await loadPredictions();
+      if (result?.success !== false) await loadPredictions();
     } catch (err) {
       console.error('Failed to run Gemini analysis', err);
+      setAnalysisSuccess(false);
       setAnalysisMessage('Gemini analysis could not be completed. Check backend configuration for the Gemini API key.');
     } finally {
       setRunningAnalysis(false);
+      startCooldown();
     }
   };
+
+  const handleModeChange = async (newMode) => {
+    if (newMode === geminiMode || modeChanging) return;
+    setModeChanging(true);
+    try {
+      await setGeminiMode(newMode);
+      setGeminiModeState(newMode);
+      setAnalysisMessage(`AI mode switched to "${newMode}".`);
+      setAnalysisSuccess(true);
+    } catch {
+      setAnalysisMessage('Failed to switch AI mode. Check backend connection.');
+      setAnalysisSuccess(false);
+    } finally {
+      setModeChanging(false);
+    }
+  };
+
+  const analysisBannerClass = analysisSuccess === false
+    ? 'error-banner'
+    : 'loading-banner';
 
   return (
     <div className="page-container">
@@ -122,7 +173,7 @@ function AIPage() {
       </header>
 
       {error && <div className="error-banner">{error}</div>}
-      {analysisMessage && <div className="loading-banner">{analysisMessage}</div>}
+      {analysisMessage && <div className={analysisBannerClass}>{analysisMessage}</div>}
 
       {loading ? (
         <div className="skeleton-grid">
@@ -132,23 +183,63 @@ function AIPage() {
         </div>
       ) : (
         <>
+          {/* Gemini Analysis Hero Card */}
           <section className="ai-hero-section">
             <div className="ai-hero-card">
               <div className="ai-hero-icon">
                 <Sparkles size={28} />
               </div>
               <div className="ai-hero-content">
-                <h2>Run Gemini analysis on demand</h2>
+                <h2>Run Gemini AI Analysis</h2>
                 <p>
-                  This view now stays stable even when the predictions payload is partial or the backend
-                  is temporarily unavailable.
+                  Trigger on-demand AI analysis for this device.
+                  Results are stored and shown in the predictions below.
+                </p>
+
+                {/* Mode Toggle */}
+                <div className="gemini-mode-toggle" aria-label="Gemini analysis mode">
+                  <button
+                    id="mode-commentary"
+                    className={`mode-btn ${geminiMode === 'commentary' ? 'active' : ''}`}
+                    onClick={() => handleModeChange('commentary')}
+                    disabled={modeChanging}
+                  >
+                    <MessageSquare size={13} />
+                    Commentary
+                  </button>
+                  <button
+                    id="mode-prediction"
+                    className={`mode-btn ${geminiMode === 'prediction' ? 'active' : ''}`}
+                    onClick={() => handleModeChange('prediction')}
+                    disabled={modeChanging}
+                  >
+                    <Zap size={13} />
+                    Prediction
+                  </button>
+                </div>
+                <p className="mode-description">
+                  {geminiMode === 'commentary'
+                    ? 'Commentary: Gemini explains the ML model results in plain language.'
+                    : 'Prediction: Gemini directly predicts failures and maintenance needs.'}
                 </p>
               </div>
-              <button className="ai-primary-action" onClick={handleRunAnalysis} disabled={runningAnalysis}>
+
+              {/* Analyze Button with Cooldown */}
+              <button
+                id="btn-run-gemini-analysis"
+                className="ai-primary-action"
+                onClick={handleRunAnalysis}
+                disabled={runningAnalysis || cooldown > 0}
+              >
                 {runningAnalysis ? (
                   <>
                     <RefreshCw size={16} className="spinning" />
-                    Analyzing
+                    Analyzing…
+                  </>
+                ) : cooldown > 0 ? (
+                  <>
+                    <RefreshCw size={16} />
+                    Wait {cooldown}s
                   </>
                 ) : (
                   <>
@@ -216,7 +307,7 @@ function AIPage() {
               <div className="panel note-panel">
                 <AlertTriangle size={18} />
                 <p>
-                  The AI page is rendering correctly now. It will populate once the backend returns
+                  The AI page is rendering correctly. It will populate once the backend returns
                   prediction records for this device.
                 </p>
               </div>

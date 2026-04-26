@@ -10,6 +10,7 @@ import VibrationPage from './pages/VibrationPage';
 import FaultsPage from './pages/FaultsPage';
 import TerminalPage from './pages/TerminalPage';
 import SettingsPage from './pages/SettingsPage';
+import AboutPage from './pages/AboutPage';
 import './App.css';
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
           <Route path="faults" element={<FaultsPage />} />
           <Route path="terminal" element={<TerminalPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="about" element={<AboutPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

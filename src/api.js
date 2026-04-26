@@ -18,7 +18,7 @@ export async function fetchDeviceFaults(deviceId, limit = 10) {
   return res.json();
 }
 
-export async function fetchDevicePredictions(deviceId, limit = 5) {
+export async function fetchDevicePredictions(deviceId, limit = 50) {
   const res = await fetch(`${API_BASE_URL}/predictions/${deviceId}?limit=${limit}`, { headers });
   if (!res.ok) throw new Error('Failed to fetch predictions');
   return res.json();
@@ -32,6 +32,26 @@ export async function triggerGeminiAnalysis(deviceId) {
   if (!res.ok) throw new Error('Failed to trigger Gemini AI analysis');
   return res.json();
 }
+
+export async function setGeminiMode(mode) {
+  const res = await fetch(`${API_BASE_URL}/ai/mode`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ mode }),
+  });
+  if (!res.ok) throw new Error('Failed to update Gemini mode');
+  return res.json();
+}
+
+export async function triggerLocalAnalysis(deviceId) {
+  const res = await fetch(`${API_BASE_URL}/ai/local-analyze/${deviceId}`, {
+    method: 'POST',
+    headers,
+  });
+  if (!res.ok) throw new Error('Failed to trigger local AI analysis');
+  return res.json();
+}
+
 
 export async function fetchPowerForecast(deviceId, electricityRate = 0.12, hours = 24) {
   const res = await fetch(`${API_BASE_URL}/forecast/${deviceId}?electricity_rate=${electricityRate}&hours=${hours}`, { headers });

@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useParams, Link } from 'react-router-dom';
-import { ChevronLeft, Cpu } from 'lucide-react';
+import { ChevronLeft, Cpu, Info } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import { 
   IconOverview, IconAI, IconPower, IconTemp, 
@@ -19,6 +19,7 @@ function DeviceLayout() {
     { path: 'faults', label: 'Faults', icon: IconFaults },
     { path: 'terminal', label: 'Terminal', icon: IconTerminal },
     { path: 'settings', label: 'Settings', icon: IconSettings },
+    { path: 'about', label: 'About', icon: Info },
   ];
 
   return (
