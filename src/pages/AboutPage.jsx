@@ -1,5 +1,6 @@
-import { Brain, Code, User, ExternalLink, Cpu, Activity, Thermometer, Zap, BarChart2, TrendingDown, Shield, Wrench, Clock } from 'lucide-react';
-import Breadcrumbs from '../components/Breadcrumbs';
+import { Brain, Code, User, ExternalLink, Cpu, Activity, Thermometer, Zap, BarChart2, TrendingDown, Shield, Wrench, Clock, ChevronLeft } from 'lucide-react';
+import { Link, useParams } from 'react-router-dom';
+import ThemeToggle from '../components/ThemeToggle';
 import './PageStyles.css';
 
 // ── Data ─────────────────────────────────────────────────────────────────────
@@ -17,6 +18,7 @@ const ML_MODELS = [
     category: 'Anomaly Detection',
     icon: Shield,
     color: 'var(--accent-danger)',
+    bgVariable: 'var(--accent-danger-alpha-10)',
     models: [
       {
         name: 'Isolation Forest',
@@ -48,6 +50,7 @@ const ML_MODELS = [
     category: 'Temperature Prediction',
     icon: Thermometer,
     color: 'var(--accent-warm)',
+    bgVariable: 'var(--accent-warm-alpha-10)',
     models: [
       {
         name: 'Linear Regression (Trend)',
@@ -67,6 +70,7 @@ const ML_MODELS = [
     category: 'Power & Efficiency',
     icon: Zap,
     color: 'var(--accent-1)',
+    bgVariable: 'var(--accent-1-alpha-10)',
     models: [
       {
         name: 'Lasso Regression',
@@ -92,6 +96,7 @@ const ML_MODELS = [
     category: 'Bearing & Vibration',
     icon: Activity,
     color: 'var(--accent-success)',
+    bgVariable: 'var(--accent-success-alpha-10)',
     models: [
       {
         name: 'NASA Bearing Health Model',
@@ -117,6 +122,7 @@ const ML_MODELS = [
     category: 'Stall Risk',
     icon: TrendingDown,
     color: 'var(--accent-danger)',
+    bgVariable: 'var(--accent-danger-alpha-10)',
     models: [
       {
         name: 'Random Forest Classifier',
@@ -136,6 +142,7 @@ const ML_MODELS = [
     category: 'Remaining Useful Life & Maintenance',
     icon: Clock,
     color: 'var(--accent-1)',
+    bgVariable: 'var(--accent-1-alpha-10)',
     models: [
       {
         name: 'Multi-indicator RUL Model',
@@ -155,6 +162,7 @@ const ML_MODELS = [
     category: 'AI Language Model',
     icon: Brain,
     color: 'var(--accent-1)',
+    bgVariable: 'var(--accent-1-alpha-10)',
     models: [
       {
         name: 'Google Gemini 2.0 Flash',
@@ -180,11 +188,19 @@ const TECH_STACK = [
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function AboutPage() {
-  return (
-    <div className="page-container">
-      <Breadcrumbs />
+  const { deviceId } = useParams();
 
-      <header className="page-header">
+  return (
+    <div className="page-container about-page-root">
+      <div className="about-top-nav">
+        <Link to={deviceId ? `/device/${deviceId}/overview` : "/"} className="back-link">
+          <ChevronLeft size={20} />
+          {deviceId ? 'Back to Dashboard' : 'Back to Devices'}
+        </Link>
+        {!deviceId && <ThemeToggle />}
+      </div>
+
+      <header className="page-header about-header">
         <div className="header-with-icon">
           <div className="header-icon-wrapper ai">
             <Brain size={28} />
@@ -233,7 +249,7 @@ export default function AboutPage() {
           return (
             <div key={category.category} className="about-category">
               <div className="about-category-header">
-                <div className="about-category-icon" style={{ background: `${category.color}18`, color: category.color }}>
+                <div className="about-category-icon" style={{ background: category.bgVariable, color: category.color }}>
                   <Icon size={18} />
                 </div>
                 <h3>{category.category}</h3>

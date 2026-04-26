@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Activity, Plus, Cpu, ArrowRight, Trash2, Search, Wifi, WifiOff, Clock, Layers, X, RefreshCw } from 'lucide-react';
+import { Activity, Plus, Cpu, ArrowRight, Trash2, Search, Wifi, WifiOff, Clock, Layers, X, RefreshCw, Info } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { fetchDevices, createDevice, createDevicesBulk, deleteDevice, updateDevice } from '../api';
 import ThemeToggle from '../components/ThemeToggle';
@@ -163,7 +163,13 @@ function Home() {
               <Activity size={32} />
               <h1>Smart Motor Command Center</h1>
             </div>
-            <ThemeToggle />
+            <div className="header-actions">
+              <Link to="/about" className="about-link-btn" title="About">
+                <Info size={18} />
+                About
+              </Link>
+              <ThemeToggle />
+            </div>
           </div>
           <p className="subtitle">Manage and monitor your motor devices</p>
         </div>

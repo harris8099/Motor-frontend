@@ -36,6 +36,15 @@
   --button-dark-hover-bg: var(--surface-dark-muted);
   --pill-bg: rgba(255, 255, 255, 0.88);
   --card-subtle-bg: rgba(255, 255, 255, 0.72);
+  --accent-1-alpha-10: rgba(15, 108, 189, 0.1);
+  --accent-1-alpha-5: rgba(15, 108, 189, 0.05);
+  --accent-warm-alpha-10: rgba(199, 138, 44, 0.1);
+  --accent-success-alpha-10: rgba(29, 122, 85, 0.1);
+  --accent-danger-alpha-10: rgba(181, 71, 61, 0.1);
+  --shadow-color-subtle: rgba(15, 23, 42, 0.08);
+  --shadow-color-accent: rgba(15, 108, 189, 0.2);
+  --button-ghost-bg: rgba(15, 23, 42, 0.04);
+  --button-ghost-hover-bg: rgba(15, 23, 42, 0.08);
 }
 
 :root[data-theme='dark'] {
@@ -69,6 +78,15 @@
   --button-dark-hover-bg: rgba(255, 255, 255, 0.14);
   --pill-bg: rgba(22, 34, 47, 0.92);
   --card-subtle-bg: rgba(22, 34, 47, 0.84);
+  --accent-1-alpha-10: rgba(94, 167, 226, 0.14);
+  --accent-1-alpha-5: rgba(94, 167, 226, 0.08);
+  --accent-warm-alpha-10: rgba(215, 162, 76, 0.14);
+  --accent-success-alpha-10: rgba(79, 184, 138, 0.14);
+  --accent-danger-alpha-10: rgba(224, 125, 115, 0.14);
+  --shadow-color-subtle: rgba(0, 0, 0, 0.25);
+  --shadow-color-accent: rgba(0, 0, 0, 0.35);
+  --button-ghost-bg: rgba(255, 255, 255, 0.06);
+  --button-ghost-hover-bg: rgba(255, 255, 255, 0.12);
 }
 
 * {

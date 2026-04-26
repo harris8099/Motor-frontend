@@ -38,6 +38,34 @@
   color: var(--text-strong);
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.about-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid var(--border-subtle);
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.about-link-btn:hover {
+  color: var(--accent-1);
+  background: rgba(15, 108, 189, 0.06);
+  border-color: rgba(15, 108, 189, 0.2);
+  transform: translateY(-1px);
+}
+
 .subtitle {
   max-width: 60ch;
   color: var(--text-muted);
