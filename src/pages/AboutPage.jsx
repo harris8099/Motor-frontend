@@ -5,12 +5,12 @@ import './PageStyles.css';
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 const OWNER = {
-  name: 'TUF',
-  role: 'Embedded Systems & ML Engineer',
+  name: 'Harhsil',
+  role: 'Electronics and communication engineering',
   description:
     'Smart Motor Monitoring System — a real-time IoT + Machine Learning platform for predictive industrial motor maintenance. Built with FastAPI, PostgreSQL, React, and ESP32.',
-  github: 'https://github.com',
-  linkedin: 'https://linkedin.com',
+  github: 'https://github.com/harris8099',
+  linkedin: 'https://www.linkedin.com/in/harshil-suthar-942307249/',
 };
 
 const ML_MODELS = [
