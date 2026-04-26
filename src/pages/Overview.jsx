@@ -4,7 +4,7 @@ import {
   Zap, Clock, Activity, Brain, AlertTriangle, RefreshCw,
   TrendingUp, Heart, Shield, Wrench, BarChart2, Sparkles, Cpu,
 } from 'lucide-react';
-import { fetchDeviceData, fetchDevicePredictions, triggerGeminiAnalysis, triggerLocalAnalysis } from '../api';
+import { fetchDeviceData, fetchDevicePredictions, triggerCloudAnalysis, triggerLocalAnalysis } from '../api';
 import MetricCard from '../components/MetricCard';
 import LiveChart from '../components/LiveChart';
 import Breadcrumbs from '../components/Breadcrumbs';
@@ -153,12 +153,12 @@ function Overview() {
     if (cooldown > 0 || runningAnalysis) return;
     try {
       setRunningAnalysis(true);
-      await triggerGeminiAnalysis(deviceId);
+      await triggerCloudAnalysis(deviceId);
       const predsRes = await fetchDevicePredictions(deviceId);
       setPredictions(predsRes.data || []);
       setLastUpdated(new Date());
     } catch (err) {
-      console.error('Failed to run Gemini analysis', err);
+      console.error('Failed to run Cloud AI analysis', err);
     } finally {
       setRunningAnalysis(false);
       startCooldown();
@@ -483,14 +483,14 @@ function Overview() {
                   onClick={handleRunAnalysis}
                   disabled={runningAnalysis || cooldown > 0}
                   style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
-                  title="Run Google Gemini AI Analysis"
+                  title="Run Cloud AI Analysis (Mistral/Gemini/Groq)"
                 >
                   {runningAnalysis ? (
                     <><RefreshCw size={14} className="spin" /> Analyzing...</>
                   ) : cooldown > 0 ? (
                     <><Clock size={14} /> Ready in {cooldown}s</>
                   ) : (
-                    <><Sparkles size={14} /> Run Gemini AI</>
+                    <><Sparkles size={14} /> Run Cloud AI</>
                   )}
                 </button>
               </div>

@@ -2219,3 +2219,119 @@ section h2 {
     justify-content: center;
   }
 }
+
+/* AI Analysis Result Display */
+.ai-result-section {
+  margin-bottom: 1.5rem;
+}
+
+.ai-result-panel {
+  background: linear-gradient(135deg, rgba(15, 108, 189, 0.08) 0%, var(--panel-bg) 100%);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.ai-result-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(15, 108, 189, 0.1);
+}
+
+.ai-result-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-strong);
+  flex: 1;
+}
+
+.severity-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.severity-badge.high {
+  background: rgba(181, 71, 61, 0.12);
+  color: var(--accent-danger);
+}
+
+.severity-badge.medium {
+  background: rgba(237, 137, 54, 0.12);
+  color: #ed8936;
+}
+
+.severity-badge.low {
+  background: rgba(72, 187, 120, 0.12);
+  color: #48bb78;
+}
+
+.confidence-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.6rem;
+  background: rgba(15, 108, 189, 0.1);
+  color: var(--accent-1);
+  border-radius: 20px;
+}
+
+.ai-result-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.prediction-type {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-strong);
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.ai-comment {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-main);
+  margin: 0;
+  padding: 0.75rem;
+  background: var(--panel-bg);
+  border-radius: 8px;
+  border-left: 3px solid var(--accent-1);
+}
+
+.ai-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+}
+
+.metric-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.metric-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-strong);
+}

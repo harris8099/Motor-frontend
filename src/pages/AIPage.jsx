@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { AlertTriangle, Brain, RefreshCw, Sparkles, TrendingUp, MessageSquare, Zap } from 'lucide-react';
-import { fetchDevicePredictions, triggerGeminiAnalysis, setGeminiMode } from '../api';
+import { fetchDevicePredictions, triggerCloudAnalysis, setAIMode } from '../api';
 import Breadcrumbs from '../components/Breadcrumbs';
 import LiveIndicator from '../components/LiveIndicator';
 import PredictionsBadge from '../components/PredictionsBadge';
@@ -54,6 +54,7 @@ function AIPage() {
   const [error, setError] = useState('');
   const [analysisMessage, setAnalysisMessage] = useState('');
   const [analysisSuccess, setAnalysisSuccess] = useState(null); // true | false | null
+  const [analysisResult, setAnalysisResult] = useState(null); // Store AI response
   const [lastUpdated, setLastUpdated] = useState(null);
 
   // Cooldown state
@@ -61,7 +62,7 @@ function AIPage() {
   const cooldownRef = useRef(null);
 
   // Mode toggle state — default to commentary
-  const [geminiMode, setGeminiModeState] = useState('commentary');
+  const [aiMode, setAiModeState] = useState('commentary');
   const [modeChanging, setModeChanging] = useState(false);
 
   const startCooldown = () => {
@@ -113,14 +114,17 @@ function AIPage() {
       setRunningAnalysis(true);
       setAnalysisMessage('');
       setAnalysisSuccess(null);
-      const result = await triggerGeminiAnalysis(deviceId);
+      setAnalysisResult(null); // Clear previous result
+      const result = await triggerCloudAnalysis(deviceId);
       setAnalysisSuccess(result?.success !== false);
-      setAnalysisMessage(result?.message || 'Gemini analysis completed.');
+      setAnalysisMessage(result?.message || 'Cloud AI analysis completed.');
+      setAnalysisResult(result?.analysis || null); // Store AI analysis
       if (result?.success !== false) await loadPredictions();
     } catch (err) {
-      console.error('Failed to run Gemini analysis', err);
+      console.error('Failed to run Cloud AI analysis', err);
       setAnalysisSuccess(false);
-      setAnalysisMessage('Gemini analysis could not be completed. Check backend configuration for the Gemini API key.');
+      setAnalysisMessage('Cloud AI analysis could not be completed. Check backend configuration for API keys.');
+      setAnalysisResult(null);
     } finally {
       setRunningAnalysis(false);
       startCooldown();
@@ -128,11 +132,11 @@ function AIPage() {
   };
 
   const handleModeChange = async (newMode) => {
-    if (newMode === geminiMode || modeChanging) return;
+    if (newMode === aiMode || modeChanging) return;
     setModeChanging(true);
     try {
-      await setGeminiMode(newMode);
-      setGeminiModeState(newMode);
+      await setAIMode(newMode);
+      setAiModeState(newMode);
       setAnalysisMessage(`AI mode switched to "${newMode}".`);
       setAnalysisSuccess(true);
     } catch {
@@ -175,6 +179,50 @@ function AIPage() {
       {error && <div className="error-banner">{error}</div>}
       {analysisMessage && <div className={analysisBannerClass}>{analysisMessage}</div>}
 
+      {/* AI Analysis Result Display */}
+      {analysisResult && (
+        <section className="ai-result-section">
+          <div className="panel ai-result-panel">
+            <div className="ai-result-header">
+              <Sparkles size={18} />
+              <h3>AI Analysis Result</h3>
+              <span className={`severity-badge ${analysisResult.severity}`}>
+                {analysisResult.severity?.toUpperCase()}
+              </span>
+              <span className="confidence-badge">
+                {Math.round(analysisResult.confidence * 100)}% confidence
+              </span>
+            </div>
+            <div className="ai-result-content">
+              <p className="prediction-type">{formatPredictionType(analysisResult.type)}</p>
+              {analysisResult.details?.comment && (
+                <p className="ai-comment">{analysisResult.details.comment}</p>
+              )}
+              {analysisResult.details?.failure_probability_24h !== undefined && (
+                <div className="ai-metrics">
+                  <div className="metric">
+                    <span className="metric-label">Failure Probability (24h)</span>
+                    <span className="metric-value">{analysisResult.details.failure_probability_24h}%</span>
+                  </div>
+                  {analysisResult.details.likely_failure_mode && (
+                    <div className="metric">
+                      <span className="metric-label">Likely Failure Mode</span>
+                      <span className="metric-value">{analysisResult.details.likely_failure_mode}</span>
+                    </div>
+                  )}
+                  {analysisResult.details.estimated_rul_days !== undefined && (
+                    <div className="metric">
+                      <span className="metric-label">Estimated RUL</span>
+                      <span className="metric-value">{analysisResult.details.estimated_rul_days} days</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
       {loading ? (
         <div className="skeleton-grid">
           {[...Array(4)].map((_, index) => (
@@ -183,24 +231,24 @@ function AIPage() {
         </div>
       ) : (
         <>
-          {/* Gemini Analysis Hero Card */}
+          {/* Cloud AI Analysis Hero Card */}
           <section className="ai-hero-section">
             <div className="ai-hero-card">
               <div className="ai-hero-icon">
                 <Sparkles size={28} />
               </div>
               <div className="ai-hero-content">
-                <h2>Run Gemini AI Analysis</h2>
+                <h2>Run Cloud AI Analysis</h2>
                 <p>
                   Trigger on-demand AI analysis for this device.
                   Results are stored and shown in the predictions below.
                 </p>
 
                 {/* Mode Toggle */}
-                <div className="gemini-mode-toggle" aria-label="Gemini analysis mode">
+                <div className="gemini-mode-toggle" aria-label="AI analysis mode">
                   <button
                     id="mode-commentary"
-                    className={`mode-btn ${geminiMode === 'commentary' ? 'active' : ''}`}
+                    className={`mode-btn ${aiMode === 'commentary' ? 'active' : ''}`}
                     onClick={() => handleModeChange('commentary')}
                     disabled={modeChanging}
                   >
@@ -209,7 +257,7 @@ function AIPage() {
                   </button>
                   <button
                     id="mode-prediction"
-                    className={`mode-btn ${geminiMode === 'prediction' ? 'active' : ''}`}
+                    className={`mode-btn ${aiMode === 'prediction' ? 'active' : ''}`}
                     onClick={() => handleModeChange('prediction')}
                     disabled={modeChanging}
                   >
@@ -218,15 +266,15 @@ function AIPage() {
                   </button>
                 </div>
                 <p className="mode-description">
-                  {geminiMode === 'commentary'
-                    ? 'Commentary: Gemini explains the ML model results in plain language.'
-                    : 'Prediction: Gemini directly predicts failures and maintenance needs.'}
+                  {aiMode === 'commentary'
+                    ? 'Commentary: AI explains the ML model results in plain language.'
+                    : 'Prediction: AI directly predicts failures and maintenance needs.'}
                 </p>
               </div>
 
               {/* Analyze Button with Cooldown */}
               <button
-                id="btn-run-gemini-analysis"
+                id="btn-run-ai-analysis"
                 className="ai-primary-action"
                 onClick={handleRunAnalysis}
                 disabled={runningAnalysis || cooldown > 0}

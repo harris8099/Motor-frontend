@@ -24,22 +24,22 @@ export async function fetchDevicePredictions(deviceId, limit = 50) {
   return res.json();
 }
 
-export async function triggerGeminiAnalysis(deviceId) {
+export async function triggerCloudAnalysis(deviceId) {
   const res = await fetch(`${API_BASE_URL}/ai/analyze/${deviceId}`, {
     method: 'POST',
     headers,
   });
-  if (!res.ok) throw new Error('Failed to trigger Gemini AI analysis');
+  if (!res.ok) throw new Error('Failed to trigger Cloud AI analysis');
   return res.json();
 }
 
-export async function setGeminiMode(mode) {
+export async function setAIMode(mode) {
   const res = await fetch(`${API_BASE_URL}/ai/mode`, {
     method: 'POST',
     headers,
     body: JSON.stringify({ mode }),
   });
-  if (!res.ok) throw new Error('Failed to update Gemini mode');
+  if (!res.ok) throw new Error('Failed to update AI mode');
   return res.json();
 }
 
