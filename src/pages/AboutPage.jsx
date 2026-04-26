@@ -5,7 +5,7 @@ import './PageStyles.css';
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 const OWNER = {
-  name: 'Harhsil',
+  name: 'Harshil Suthar',
   role: 'Electronics and communication engineering',
   description:
     'Smart Motor Monitoring System — a real-time IoT + Machine Learning platform for predictive industrial motor maintenance. Built with FastAPI, PostgreSQL, React, and ESP32.',
