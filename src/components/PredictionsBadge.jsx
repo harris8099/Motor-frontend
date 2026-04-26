@@ -1,4 +1,5 @@
 import { AlertTriangle, Activity, Thermometer, Zap, Clock, TrendingDown, Cpu, MessageSquare, ShieldAlert, Wrench, BarChart2 } from 'lucide-react';
+import { formatProbabilityPercent } from '../utils/formatters';
 
 // ── Prediction type metadata ────────────────────────────────────────────────
 const PREDICTION_META = {
@@ -84,7 +85,7 @@ const PREDICTION_META = {
     desc: 'Gemini AI direct assessment of failure risk and recommended actions.',
     Icon: Cpu,
     getHighlights: (d) => [
-      d.failure_probability_24h != null && { label: '24 h failure risk', value: `${(Number(d.failure_probability_24h) * 100).toFixed(0)}%` },
+      d.failure_probability_24h != null && { label: '24 h failure risk', value: formatProbabilityPercent(d.failure_probability_24h) },
       d.likely_failure_mode && { label: 'Most likely failure', value: d.likely_failure_mode },
       d.estimated_rul_days != null && { label: 'Est. remaining life', value: `${d.estimated_rul_days} days` },
     ].filter(Boolean),

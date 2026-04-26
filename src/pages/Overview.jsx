@@ -11,6 +11,8 @@ import Breadcrumbs from '../components/Breadcrumbs';
 import LiveIndicator from '../components/LiveIndicator';
 import GaugeMeter from '../components/GaugeMeter';
 import SkeletonCard from '../components/SkeletonCard';
+import { isReadingLive } from '../utils/deviceStatus';
+import { formatProbabilityPercent } from '../utils/formatters';
 import './PageStyles.css';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -261,7 +263,7 @@ function Overview() {
         ]);
         setData(dataRes.data || []);
         setPredictions(predsRes.data || []);
-        setLastUpdated(new Date());
+        setLastUpdated(dataRes.data?.[0]?.ts ? new Date(dataRes.data[0].ts) : null);
       } catch (err) {
         console.error('Failed to load data', err);
         setError('Could not load telemetry. Please check API connection.');
@@ -279,6 +281,7 @@ function Overview() {
   const uptimeHours = latest ? Math.floor(latest.uptime_seconds / 3600) : 0;
   const averageTemp = latest ? ((latest.temp1 + latest.temp2) / 2).toFixed(1) : '0.0';
   const health      = getHealthSummary(predictions);
+  const isLive = isReadingLive(latest);
 
   const maxRPM   = 3000;
   const maxPower = 2000;
@@ -299,7 +302,7 @@ function Overview() {
           </div>
         </div>
         <div className="header-meta">
-          <LiveIndicator isLive={!!latest} />
+          <LiveIndicator isLive={isLive} />
           <span className="last-updated">
             {lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString()}` : 'Waiting...'}
           </span>
@@ -608,7 +611,7 @@ function Overview() {
                       {predictionResult.details?.failure_probability_24h !== undefined && (
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted,#aaa)' }}>Failure Probability (24h)</span>
-                          <span style={{ fontWeight: 700, color: 'var(--accent-danger,#e05)' }}>{predictionResult.details.failure_probability_24h}%</span>
+                          <span style={{ fontWeight: 700, color: 'var(--accent-danger,#e05)' }}>{formatProbabilityPercent(predictionResult.details.failure_probability_24h)}</span>
                         </div>
                       )}
                       {predictionResult.details?.likely_failure_mode && (

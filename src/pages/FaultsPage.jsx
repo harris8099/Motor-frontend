@@ -7,6 +7,7 @@ import FaultsList from '../components/FaultsList';
 import Breadcrumbs from '../components/Breadcrumbs';
 import LiveIndicator from '../components/LiveIndicator';
 import SkeletonCard from '../components/SkeletonCard';
+import { isReadingLive } from '../utils/deviceStatus';
 import './PageStyles.css';
 
 function FaultsPage() {
@@ -41,6 +42,7 @@ function FaultsPage() {
   }, [deviceId]);
 
   const latest = data.length > 0 ? data[0] : null;
+  const isLive = isReadingLive(latest);
 
   const faultTypes = [
     { key: 'fault_overcurrent', name: 'Over Current', icon: Zap },
@@ -68,7 +70,7 @@ function FaultsPage() {
           </div>
         </div>
         <div className="header-meta">
-          <LiveIndicator isLive={!loading && !error && !!latest} />
+          <LiveIndicator isLive={!loading && !error && isLive} />
         </div>
       </header>
 

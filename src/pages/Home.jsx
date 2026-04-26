@@ -3,6 +3,7 @@ import { Activity, Plus, Cpu, ArrowRight, Trash2, Search, Wifi, WifiOff, Clock, 
 import { Link } from 'react-router-dom';
 import { fetchDevices, createDevice, createDevicesBulk, deleteDevice, updateDevice } from '../api';
 import ThemeToggle from '../components/ThemeToggle';
+import { getDeviceStatus } from '../utils/deviceStatus';
 import './Home.css';
 
 function Home() {
@@ -23,17 +24,16 @@ function Home() {
 
   async function loadDevices() {
     try {
+      setLoading(true);
       const data = await fetchDevices();
       // Transform backend data to frontend format
       const transformed = data.map(d => ({
         id: d.id,
         name: d.name || d.id,
         added: d.created_at,
-        lastSeen: d.last_seen_at || d.created_at,
-        isOnline: d.is_active && d.last_seen_at 
-          ? (new Date() - new Date(d.last_seen_at)) / 1000 < 120 // Consider online if seen in last 2 min
-          : false, // Devices that have never sent data should be offline
-        is_active: d.is_active
+        lastSeen: d.last_seen_at,
+        status: getDeviceStatus(d),
+        is_active: d.is_active !== false,
       }));
       setDevices(transformed);
       setError('');
@@ -53,17 +53,14 @@ function Home() {
 
   const addSingleDevice = async (e) => {
     e.preventDefault();
-    if (!newDeviceId.trim()) return;
-    
-    if (devices.some(d => d.id === newDeviceId.trim())) {
-      alert('Device ID already exists!');
-      return;
-    }
+    const trimmedId = newDeviceId.trim();
+    if (!trimmedId) return;
     
     setIsSubmitting(true);
     try {
+      const existingDevice = devices.find(d => d.id === trimmedId);
       await createDevice({
-        id: newDeviceId.trim(),
+        id: trimmedId,
         name: newDeviceName.trim() || undefined
       });
       
@@ -71,6 +68,9 @@ function Home() {
       setNewDeviceId('');
       setNewDeviceName('');
       setShowAddPanel(false);
+      if (existingDevice) {
+        alert(`Device ${trimmedId} was reactivated and updated.`);
+      }
     } catch (err) {
       alert(`Failed to add device: ${err.message}`);
     } finally {
@@ -82,6 +82,7 @@ function Home() {
     e.preventDefault();
     const lines = bulkInput.split('\n').map(l => l.trim()).filter(l => l);
     const devicesToCreate = [];
+    const seenIds = new Set();
     
     lines.forEach(line => {
       const parts = line.split(',').map(p => p.trim());
@@ -89,23 +90,29 @@ function Home() {
       const name = parts[1] || undefined;
       
       if (!id) return;
-      if (!devices.some(d => d.id === id)) {
-        devicesToCreate.push({ id, name });
-      }
+      if (seenIds.has(id)) return;
+
+      seenIds.add(id);
+      devicesToCreate.push({ id, name });
     });
     
     if (devicesToCreate.length === 0) {
-      alert('No new devices to add (duplicates skipped)');
+      alert('No valid devices to add');
       return;
     }
     
     setIsSubmitting(true);
     try {
+      const existingIds = new Set(devices.map(d => d.id));
+      const reactivatedCount = devicesToCreate.filter(device => existingIds.has(device.id)).length;
       await createDevicesBulk(devicesToCreate);
       await loadDevices();
       setBulkInput('');
       setShowAddPanel(false);
       setBulkMode(false);
+      if (reactivatedCount > 0) {
+        alert(`Saved ${devicesToCreate.length} devices. Reactivated/updated ${reactivatedCount} existing device(s).`);
+      }
     } catch (err) {
       alert(`Failed to add devices: ${err.message}`);
     } finally {
@@ -148,6 +155,8 @@ function Home() {
   );
 
   const formatLastSeen = (date) => {
+    if (!date) return 'No data yet';
+
     const now = new Date();
     const then = new Date(date);
     const diff = Math.floor((now - then) / 1000);
@@ -189,12 +198,12 @@ function Home() {
             <span className="stat-label">Total Devices</span>
           </div>
           <div className="stat-item">
-            <span className="stat-value online">{devices.filter(d => d.isOnline).length}</span>
+            <span className="stat-value online">{devices.filter(d => d.status === 'online').length}</span>
             <span className="stat-label">Online</span>
           </div>
           <div className="stat-item">
-            <span className="stat-value offline">{devices.filter(d => !d.isOnline).length}</span>
-            <span className="stat-label">Offline</span>
+            <span className="stat-value offline">{devices.filter(d => d.status !== 'online').length}</span>
+            <span className="stat-label">Not Live</span>
           </div>
           <button 
             className="refresh-btn"
@@ -320,7 +329,7 @@ function Home() {
                 <Link 
                   key={device.id} 
                   to={`/device/${device.id}/overview`}
-                  className={`device-card ${device.isOnline ? 'online' : 'offline'}`}
+                  className={`device-card ${device.status}`}
                 >
                   <div className="device-header">
                     <div className="device-icon">
@@ -339,11 +348,11 @@ function Home() {
                         <Trash2 size={16} />
                       </button>
                       <button 
-                        className={`status-toggle ${device.isOnline ? 'online' : 'offline'}`}
+                        className={`status-toggle ${device.is_active ? 'online' : 'offline'}`}
                         onClick={(e) => toggleDeviceStatus(e, device.id)}
-                        title={device.isOnline ? 'Set offline' : 'Set online'}
+                        title={device.is_active ? 'Disable device' : 'Enable device'}
                       >
-                        {device.isOnline ? <Wifi size={16} /> : <WifiOff size={16} />}
+                        {device.is_active ? <Wifi size={16} /> : <WifiOff size={16} />}
                       </button>
                     </div>
                   </div>
@@ -354,8 +363,8 @@ function Home() {
                   </div>
 
                   <div className="device-meta">
-                    <span className={`status-badge ${device.isOnline ? 'online' : 'offline'}`}>
-                      {device.isOnline ? 'Online' : 'Offline'}
+                    <span className={`status-badge ${device.status}`}>
+                      {device.status === 'online' ? 'Online' : device.status === 'disabled' ? 'Disabled' : device.status === 'pending' ? 'Waiting for Data' : 'Offline'}
                     </span>
                     <span className="last-seen">
                       <Clock size={12} />

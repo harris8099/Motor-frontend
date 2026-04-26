@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { AlertTriangle, Brain, RefreshCw, Sparkles, TrendingUp, MessageSquare, Zap } from 'lucide-react';
-import { fetchDevicePredictions, triggerCloudAnalysis, setAIMode, fetchLatestAIResult } from '../api';
+import { fetchDevicePredictions, triggerCloudAnalysis, setAIMode, fetchLatestAIResult, fetchDeviceData } from '../api';
 import Breadcrumbs from '../components/Breadcrumbs';
 import LiveIndicator from '../components/LiveIndicator';
 import PredictionsBadge from '../components/PredictionsBadge';
 import SkeletonCard from '../components/SkeletonCard';
+import { isReadingLive } from '../utils/deviceStatus';
 import './PageStyles.css';
 
 function normalizePrediction(prediction, index) {
@@ -84,6 +85,7 @@ function AIPage() {
   const [commentaryResult, setCommentaryResult] = useState(null);
   const [predictionResult, setPredictionResult] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [isLive, setIsLive] = useState(false);
 
   // Cooldown state
   const [cooldown, setCooldown] = useState(0);
@@ -125,15 +127,21 @@ function AIPage() {
   const loadPredictions = async () => {
     try {
       setError('');
-      const response = await fetchDevicePredictions(deviceId, 50);
+      const [response, telemetryResponse] = await Promise.all([
+        fetchDevicePredictions(deviceId, 50),
+        fetchDeviceData(deviceId, 1),
+      ]);
       const normalized = Array.isArray(response?.data)
         ? response.data.map(normalizePrediction)
         : [];
       setPredictions(normalized);
-      setLastUpdated(new Date());
+      const latestReading = telemetryResponse?.data?.[0] ?? null;
+      setIsLive(isReadingLive(latestReading));
+      setLastUpdated(latestReading?.ts ? new Date(latestReading.ts) : null);
     } catch (err) {
       console.error('Failed to load AI predictions', err);
       setPredictions([]);
+      setIsLive(false);
       setError('Could not load AI predictions. The page stays available, but the backend response failed.');
     } finally {
       setLoading(false);
@@ -218,7 +226,7 @@ function AIPage() {
           </div>
         </div>
         <div className="header-meta">
-          <LiveIndicator isLive={!loading && !error} />
+          <LiveIndicator isLive={!loading && !error && isLive} />
           <span className="last-updated">
             {lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString()}` : 'Waiting for data...'}
           </span>

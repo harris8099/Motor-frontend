@@ -6,6 +6,7 @@ import MetricCard from '../components/MetricCard';
 import Breadcrumbs from '../components/Breadcrumbs';
 import LiveIndicator from '../components/LiveIndicator';
 import SkeletonCard from '../components/SkeletonCard';
+import { isReadingLive } from '../utils/deviceStatus';
 import './PageStyles.css';
 
 function SettingsPage() {
@@ -35,6 +36,7 @@ function SettingsPage() {
   }, [deviceId]);
 
   const latest = data.length > 0 ? data[0] : null;
+  const isLive = isReadingLive(latest);
 
   return (
     <div className="page-container">
@@ -51,7 +53,7 @@ function SettingsPage() {
           </div>
         </div>
         <div className="header-meta">
-          <LiveIndicator isLive={!loading && !error && !!latest} />
+          <LiveIndicator isLive={!loading && !error && isLive} />
         </div>
       </header>
 

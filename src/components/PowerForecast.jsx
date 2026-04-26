@@ -34,6 +34,8 @@ export default function PowerForecast({ forecastData, electricityRate, onRateCha
   }
 
   const { summary, forecast } = forecastData;
+  const chartCosts = Array.isArray(forecast?.cost) ? forecast.cost : [];
+  const maxChartCost = chartCosts.length ? Math.max(...chartCosts, 1) : 1;
   const trend = summary.trend || 'stable';
   const trendIcon = trend === 'increasing' ? '↑' : trend === 'decreasing' ? '↓' : '→';
   const trendColor = trend === 'increasing' ? '#f5a99d' : trend === 'decreasing' ? '#2ed573' : '#8b95a5';
@@ -97,31 +99,31 @@ export default function PowerForecast({ forecastData, electricityRate, onRateCha
         </div>
       </div>
 
-      {forecast && forecast.cost && forecast.cost.length > 0 && (
+      {chartCosts.length > 0 && (
         <div className="forecast-chart">
           <h4>24-Hour Cost Forecast</h4>
           <div className="mini-chart">
-            {forecast.cost.slice(0, 12).map((cost, idx) => (
+            {chartCosts.map((cost, idx) => (
               <div key={idx} className="chart-bar-container">
                 <div 
                   className="chart-bar" 
                   style={{ 
-                    height: `${Math.min((cost / Math.max(...forecast.cost)) * 100, 100)}%`,
+                    height: `${Math.min((cost / maxChartCost) * 100, 100)}%`,
                     backgroundColor: cost > (summary.projected_hourly_cost || 0) ? '#f5a99d' : '#54a0ff'
                   }}
                 />
-                <span className="bar-label">{(idx + 1) * 2}h</span>
+                <span className="bar-label">{idx + 1}h</span>
               </div>
             ))}
           </div>
           <div className="chart-legend">
             <span className="legend-item">
               <span className="legend-dot" style={{ background: '#54a0ff' }}></span>
-              Under average
+              Under hourly average
             </span>
             <span className="legend-item">
               <span className="legend-dot" style={{ background: '#f5a99d' }}></span>
-              Over average
+              Over hourly average
             </span>
           </div>
         </div>

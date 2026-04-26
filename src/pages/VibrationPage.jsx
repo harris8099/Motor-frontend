@@ -7,6 +7,7 @@ import LiveChart from '../components/LiveChart';
 import Breadcrumbs from '../components/Breadcrumbs';
 import LiveIndicator from '../components/LiveIndicator';
 import SkeletonCard from '../components/SkeletonCard';
+import { isReadingLive } from '../utils/deviceStatus';
 import './PageStyles.css';
 
 function VibrationPage() {
@@ -36,6 +37,7 @@ function VibrationPage() {
   }, [deviceId]);
 
   const latest = data.length > 0 ? data[0] : null;
+  const isLive = isReadingLive(latest);
 
   // Calculate total acceleration vector
   const totalAccel = latest ? 
@@ -68,7 +70,7 @@ function VibrationPage() {
           </div>
         </div>
         <div className="header-meta">
-          <LiveIndicator isLive={!loading && !error && !!latest} />
+          <LiveIndicator isLive={!loading && !error && isLive} />
         </div>
       </header>
 

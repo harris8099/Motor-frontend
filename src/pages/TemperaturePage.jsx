@@ -7,6 +7,7 @@ import LiveChart from '../components/LiveChart';
 import Breadcrumbs from '../components/Breadcrumbs';
 import LiveIndicator from '../components/LiveIndicator';
 import SkeletonCard from '../components/SkeletonCard';
+import { isReadingLive } from '../utils/deviceStatus';
 import './PageStyles.css';
 
 function TemperaturePage() {
@@ -36,6 +37,7 @@ function TemperaturePage() {
   }, [deviceId]);
 
   const latest = data.length > 0 ? data[0] : null;
+  const isLive = isReadingLive(latest);
   const averageTemp = latest ? ((latest.temp1 + latest.temp2) / 2).toFixed(1) : '0.0';
   const tempDiff = latest ? (latest.temp1 - latest.temp2).toFixed(1) : '0.0';
 
@@ -67,7 +69,7 @@ function TemperaturePage() {
           </div>
         </div>
         <div className="header-meta">
-          <LiveIndicator isLive={!loading && !error && !!latest} />
+          <LiveIndicator isLive={!loading && !error && isLive} />
         </div>
       </header>
 
