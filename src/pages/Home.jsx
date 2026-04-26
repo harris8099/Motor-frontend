@@ -316,13 +316,26 @@ function Home() {
                     <div className="device-icon">
                       <Cpu size={24} />
                     </div>
-                    <button 
-                      className={`status-toggle ${device.isOnline ? 'online' : 'offline'}`}
-                      onClick={(e) => toggleDeviceStatus(e, device.id)}
-                      title={device.isOnline ? 'Set offline' : 'Set online'}
-                    >
-                      {device.isOnline ? <Wifi size={16} /> : <WifiOff size={16} />}
-                    </button>
+                    <div className="device-header-actions">
+                      <button 
+                        className="remove-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          removeDevice(device.id);
+                        }}
+                        title="Delete device"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                      <button 
+                        className={`status-toggle ${device.isOnline ? 'online' : 'offline'}`}
+                        onClick={(e) => toggleDeviceStatus(e, device.id)}
+                        title={device.isOnline ? 'Set offline' : 'Set online'}
+                      >
+                        {device.isOnline ? <Wifi size={16} /> : <WifiOff size={16} />}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="device-info">
@@ -343,17 +356,6 @@ function Home() {
                   <div className="device-actions">
                     <ArrowRight size={20} />
                   </div>
-
-                  <button 
-                    className="remove-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      removeDevice(device.id);
-                    }}
-                  >
-                    <Trash2 size={16} />
-                  </button>
                 </Link>
               ))
             )}

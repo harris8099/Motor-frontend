@@ -448,10 +448,11 @@
   color: var(--text-muted);
 }
 
+/* Arrow — bottom-right */
 .device-actions {
   position: absolute;
-  right: 1.25rem;
-  bottom: 1.25rem;
+  right: 1.1rem;
+  bottom: 1.1rem;
   color: var(--text-soft);
   transition: color 0.2s ease;
 }
@@ -460,11 +461,16 @@
   color: var(--accent-1);
 }
 
+/* Group trash + wifi buttons in the header */
+.device-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Delete button — inline next to the wifi toggle */
 .device-card .remove-btn {
-  position: absolute;
-  bottom: 1rem;
-  right: 1rem;
-  background: rgba(181, 71, 61, 0.08);
+  background: transparent;
   border: none;
   color: var(--accent-danger);
   padding: 0.4rem;
@@ -472,23 +478,17 @@
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.2s ease, background 0.2s ease, transform 0.15s ease;
-  z-index: 2;
 }
 
 .device-card:hover .remove-btn {
   opacity: 1;
 }
 
-/* Hide the arrow when the delete button is visible so they don't clash */
-.device-card:hover .device-actions {
-  opacity: 0;
-  pointer-events: none;
+.device-card .remove-btn:hover {
+  background: rgba(181, 71, 61, 0.12);
+  transform: scale(1.1);
 }
 
-.device-card .remove-btn:hover {
-  background: rgba(181, 71, 61, 0.18);
-  transform: scale(1.08);
-}
 
 .add-device-form {
   display: flex;
