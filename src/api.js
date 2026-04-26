@@ -78,7 +78,10 @@ export async function createDevice(device) {
     headers,
     body: JSON.stringify(device),
   });
-  if (!res.ok) throw new Error('Failed to create device');
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to create device');
+  }
   return res.json();
 }
 
@@ -107,6 +110,9 @@ export async function deleteDevice(deviceId) {
     method: 'DELETE',
     headers,
   });
-  if (!res.ok) throw new Error('Failed to delete device');
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to delete device');
+  }
   return res.json();
 }
