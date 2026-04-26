@@ -129,10 +129,14 @@ function Home() {
     e.stopPropagation();
     const device = devices.find(d => d.id === deviceId);
     if (device) {
+      const newStatus = !device.is_active;
+      console.log(`Toggling device ${deviceId}: is_active ${device.is_active} -> ${newStatus}`);
       try {
-        await updateDevice(deviceId, { is_active: !device.is_active });
+        const result = await updateDevice(deviceId, { is_active: newStatus });
+        console.log('Update result:', result);
         await loadDevices();
       } catch (err) {
+        console.error('Failed to update device:', err);
         alert(`Failed to update device: ${err.message}`);
       }
     }
