@@ -12,6 +12,8 @@ function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('lastSeen');
   const [showAddPanel, setShowAddPanel] = useState(false);
   const [bulkMode, setBulkMode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -150,10 +152,26 @@ function Home() {
     }
   };
 
-  const filteredDevices = devices.filter(d => 
-    d.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    d.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredDevices = devices
+    .filter(d => {
+      const matchesSearch = d.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        d.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || d.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'id':
+          return a.id.localeCompare(b.id);
+        case 'status':
+          return a.status.localeCompare(b.status);
+        case 'lastSeen':
+        default:
+          return new Date(b.lastSeen || 0) - new Date(a.lastSeen || 0);
+      }
+    });
 
   const formatLastSeen = (date) => {
     if (!date) return 'No data yet';
@@ -230,20 +248,49 @@ function Home() {
             </button>
           </div>
 
-          {/* Search */}
-          <div className="search-bar">
-            <Search size={18} />
-            <input
-              type="text"
-              placeholder="Search devices by name or ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            {searchQuery && (
-              <button className="clear-search" onClick={() => setSearchQuery('')}>
-                <X size={14} />
-              </button>
-            )}
+          {/* Filters */}
+          <div className="filters-bar">
+            <div className="search-bar">
+              <Search size={18} />
+              <input
+                type="text"
+                placeholder="Search devices by name or ID..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button className="clear-search" onClick={() => setSearchQuery('')}>
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+            <div className="filter-group">
+              <label>Status:</label>
+              <select 
+                value={statusFilter} 
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="filter-select"
+              >
+                <option value="all">All Status</option>
+                <option value="online">Online</option>
+                <option value="offline">Offline</option>
+                <option value="disabled">Disabled</option>
+                <option value="pending">Pending</option>
+              </select>
+            </div>
+            <div className="filter-group">
+              <label>Sort by:</label>
+              <select 
+                value={sortBy} 
+                onChange={(e) => setSortBy(e.target.value)}
+                className="filter-select"
+              >
+                <option value="lastSeen">Last Seen</option>
+                <option value="name">Name</option>
+                <option value="id">Device ID</option>
+                <option value="status">Status</option>
+              </select>
+            </div>
           </div>
 
           {/* Add Device Panel */}
