@@ -462,8 +462,8 @@
 
 .device-card .remove-btn {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
+  bottom: 1rem;
+  right: 1rem;
   background: rgba(181, 71, 61, 0.08);
   border: none;
   color: var(--accent-danger);
@@ -471,15 +471,23 @@
   border-radius: 8px;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.2s ease, background 0.2s ease;
+  transition: opacity 0.2s ease, background 0.2s ease, transform 0.15s ease;
+  z-index: 2;
 }
 
 .device-card:hover .remove-btn {
   opacity: 1;
 }
 
+/* Hide the arrow when the delete button is visible so they don't clash */
+.device-card:hover .device-actions {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .device-card .remove-btn:hover {
-  background: rgba(181, 71, 61, 0.14);
+  background: rgba(181, 71, 61, 0.18);
+  transform: scale(1.08);
 }
 
 .add-device-form {
