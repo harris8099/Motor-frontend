@@ -114,6 +114,9 @@ function Overview() {
   const cooldownRef = useRef(null);
   const localCooldownRef = useRef(null);
 
+  // AI Analysis Result
+  const [analysisResult, setAnalysisResult] = useState(null);
+
   const startCooldown = () => {
     setCooldown(30);
     if (cooldownRef.current) clearInterval(cooldownRef.current);
@@ -153,7 +156,9 @@ function Overview() {
     if (cooldown > 0 || runningAnalysis) return;
     try {
       setRunningAnalysis(true);
-      await triggerCloudAnalysis(deviceId);
+      setAnalysisResult(null);
+      const result = await triggerCloudAnalysis(deviceId);
+      setAnalysisResult(result?.analysis || null);
       const predsRes = await fetchDevicePredictions(deviceId);
       setPredictions(predsRes.data || []);
       setLastUpdated(new Date());
@@ -495,6 +500,35 @@ function Overview() {
                 </button>
               </div>
             </div>
+
+            {/* AI Analysis Result Display */}
+            {analysisResult && (
+              <div className="ai-result-section">
+                <div className="panel ai-result-panel" style={{ marginBottom: '1rem' }}>
+                  <div className="ai-result-header" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--panel-border)' }}>
+                    <Sparkles size={16} />
+                    <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-strong)', flex: 1 }}>Cloud AI Result</h3>
+                    <span className={`severity-badge ${analysisResult.severity}`} style={{ fontSize: '0.7rem', fontWeight: 600, padding: '0.25rem 0.6rem', borderRadius: '20px', textTransform: 'uppercase' }}>
+                      {analysisResult.severity?.toUpperCase()}
+                    </span>
+                    <span className="confidence-badge" style={{ fontSize: '0.75rem', fontWeight: 500, padding: '0.25rem 0.6rem', background: 'rgba(15, 108, 189, 0.1)', color: 'var(--accent-1)', borderRadius: '20px' }}>
+                      {Math.round(analysisResult.confidence * 100)}% confidence
+                    </span>
+                  </div>
+                  <div className="ai-result-content">
+                    <p style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-strong)', margin: '0 0 0.5rem 0', textTransform: 'capitalize' }}>
+                      {formatPredType(analysisResult.type)}
+                    </p>
+                    {analysisResult.details?.comment && (
+                      <p className="ai-comment" style={{ fontSize: '0.9rem', lineHeight: 1.5, color: 'var(--text-main)', margin: 0, padding: '0.5rem', background: 'var(--panel-bg)', borderRadius: '6px', borderLeft: '3px solid var(--accent-1)' }}>
+                        {analysisResult.details.comment}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="panel">
               {predictions.length > 0 ? (
                 <div className="predictions-preview">
