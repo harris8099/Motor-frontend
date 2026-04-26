@@ -12,7 +12,7 @@ import LiveIndicator from '../components/LiveIndicator';
 import GaugeMeter from '../components/GaugeMeter';
 import SkeletonCard from '../components/SkeletonCard';
 import { isReadingLive } from '../utils/deviceStatus';
-import { formatProbabilityPercent } from '../utils/formatters';
+import { formatProbabilityPercent, formatISTTime } from '../utils/formatters';
 import './PageStyles.css';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -304,7 +304,7 @@ function Overview() {
         <div className="header-meta">
           <LiveIndicator isLive={isLive} />
           <span className="last-updated">
-            {lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString()}` : 'Waiting...'}
+            {lastUpdated ? `Updated ${formatISTTime(lastUpdated)} IST` : 'Waiting...'}
           </span>
           <button className="refresh-btn" onClick={() => window.location.reload()} title="Refresh">
             <RefreshCw size={16} />

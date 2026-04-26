@@ -60,7 +60,7 @@ export default function LiveChart({ data }) {
     },
   };
 
-  const labels = chartData.map((d) => new Date(d.ts).toLocaleTimeString());
+  const labels = chartData.map((d) => new Date(d.ts).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true, hour: '2-digit', minute: '2-digit' }));
 
   const plotData = {
     labels,

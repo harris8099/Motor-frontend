@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { fetchDevices, createDevice, createDevicesBulk, deleteDevice, updateDevice } from '../api';
 import ThemeToggle from '../components/ThemeToggle';
 import { getDeviceStatus } from '../utils/deviceStatus';
+import { formatISTDateTime } from '../utils/formatters';
 import './Home.css';
 
 function Home() {
@@ -160,11 +161,12 @@ function Home() {
     const now = new Date();
     const then = new Date(date);
     const diff = Math.floor((now - then) / 1000);
-    
-    if (diff < 60) return 'Just now';
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return `${Math.floor(diff / 86400)}d ago`;
+    const istTime = formatISTDateTime(date);
+
+    if (diff < 60) return `Just now (${istTime})`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago (${istTime})`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago (${istTime})`;
+    return `${Math.floor(diff / 86400)}d ago (${istTime})`;
   };
 
   return (

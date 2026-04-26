@@ -7,6 +7,7 @@ import LiveIndicator from '../components/LiveIndicator';
 import PredictionsBadge from '../components/PredictionsBadge';
 import SkeletonCard from '../components/SkeletonCard';
 import { isReadingLive } from '../utils/deviceStatus';
+import { formatISTTime } from '../utils/formatters';
 import './PageStyles.css';
 
 function normalizePrediction(prediction, index) {
@@ -228,7 +229,7 @@ function AIPage() {
         <div className="header-meta">
           <LiveIndicator isLive={!loading && !error && isLive} />
           <span className="last-updated">
-            {lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString()}` : 'Waiting for data...'}
+            {lastUpdated ? `Updated ${formatISTTime(lastUpdated)} IST` : 'Waiting for data...'}
           </span>
           <button className="refresh-btn" onClick={loadPredictions} disabled={loading}>
             <RefreshCw size={16} className={loading ? 'spinning' : ''} />
