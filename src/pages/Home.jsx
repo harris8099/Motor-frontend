@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Activity, Plus, Cpu, ArrowRight, Trash2, Search, Wifi, WifiOff, Clock, Layers, X, RefreshCw, Info, LogOut } from 'lucide-react';
+import { Zap, Plus, Cpu, ArrowRight, Trash2, Search, Wifi, WifiOff, Clock, Layers, X, RefreshCw, Info, LogOut, Edit2, Check, XCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { fetchDevices, createDevice, createDevicesBulk, deleteDevice, updateDevice } from '../api';
 import ThemeToggle from '../components/ThemeToggle';
@@ -24,6 +24,10 @@ function Home({ onLogout }) {
   
   // Bulk add
   const [bulkInput, setBulkInput] = useState('');
+  
+  // Edit device name
+  const [editingDeviceId, setEditingDeviceId] = useState(null);
+  const [editDeviceName, setEditDeviceName] = useState('');
 
   async function loadDevices() {
     try {
@@ -152,6 +156,34 @@ function Home({ onLogout }) {
     }
   };
 
+  const startEditDevice = (e, device) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setEditingDeviceId(device.id);
+    setEditDeviceName(device.name || device.id);
+  };
+
+  const cancelEditDevice = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setEditingDeviceId(null);
+    setEditDeviceName('');
+  };
+
+  const saveEditDevice = async (e, deviceId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await updateDevice(deviceId, { name: editDeviceName.trim() || undefined });
+      await loadDevices();
+      setEditingDeviceId(null);
+      setEditDeviceName('');
+    } catch (err) {
+      console.error('Failed to update device name:', err);
+      alert(`Failed to update device name: ${err.message}`);
+    }
+  };
+
   const filteredDevices = devices
     .filter(d => {
       const matchesSearch = d.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -193,7 +225,7 @@ function Home({ onLogout }) {
         <div className="header-content">
           <div className="header-topbar">
             <div className="logo">
-              <Activity size={32} />
+              <Zap size={32} />
               <h1>Smart Motor Command Center</h1>
             </div>
             <div className="header-actions">
@@ -401,6 +433,13 @@ function Home({ onLogout }) {
                         <Trash2 size={16} />
                       </button>
                       <button 
+                        className="edit-device-btn"
+                        onClick={(e) => startEditDevice(e, device)}
+                        title="Edit device name"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button 
                         className={`status-toggle ${device.is_active ? 'online' : 'offline'}`}
                         onClick={(e) => toggleDeviceStatus(e, device.id)}
                         title={device.is_active ? 'Disable device' : 'Enable device'}
@@ -411,8 +450,44 @@ function Home({ onLogout }) {
                   </div>
 
                   <div className="device-info">
-                    <h3>{device.name}</h3>
-                    <p className="device-id">{device.id}</p>
+                    {editingDeviceId === device.id ? (
+                      <form 
+                        className="edit-device-form" 
+                        onSubmit={(e) => saveEditDevice(e, device.id)}
+                      >
+                        <input
+                          type="text"
+                          value={editDeviceName}
+                          onChange={(e) => setEditDeviceName(e.target.value)}
+                          placeholder="Device name"
+                          autoFocus
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <div className="edit-actions">
+                          <button 
+                            type="submit" 
+                            className="edit-save"
+                            title="Save"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Check size={16} />
+                          </button>
+                          <button 
+                            type="button" 
+                            className="edit-cancel"
+                            onClick={cancelEditDevice}
+                            title="Cancel"
+                          >
+                            <XCircle size={16} />
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <>
+                        <h3>{device.name}</h3>
+                        <p className="device-id">{device.id}</p>
+                      </>
+                    )}
                   </div>
 
                   <div className="device-meta">

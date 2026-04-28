@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Lock, ShieldCheck } from 'lucide-react';
+import { Lock, ShieldCheck, Sun, Moon } from 'lucide-react';
 import { login } from '../auth';
 import './LoginPage.css';
 
@@ -11,15 +11,24 @@ function LoginPage({ onLogin }) {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const [theme, setTheme] = useState('light');
+
   // Apply saved theme on mount
   useEffect(() => {
     const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    if (storedTheme === 'light' || storedTheme === 'dark') {
-      document.documentElement.dataset.theme = storedTheme;
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      document.documentElement.dataset.theme = 'dark';
-    }
+    const initialTheme = storedTheme === 'light' || storedTheme === 'dark' 
+      ? storedTheme 
+      : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    setTheme(initialTheme);
+    document.documentElement.dataset.theme = initialTheme;
   }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    document.documentElement.dataset.theme = newTheme;
+    localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -42,6 +51,15 @@ function LoginPage({ onLogin }) {
 
   return (
     <div className="login-page">
+      <button 
+        type="button"
+        className="login-theme-toggle"
+        onClick={toggleTheme}
+        aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+        title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+      >
+        {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+      </button>
       <div className="login-shell">
         <section className="login-hero">
           <div className="login-kicker">Secure Access Gate</div>

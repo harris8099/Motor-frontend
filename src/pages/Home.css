@@ -476,6 +476,84 @@
   transform: scale(1.04);
 }
 
+.edit-device-btn {
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid transparent;
+  padding: 0.45rem;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.edit-device-btn:hover {
+  transform: scale(1.04);
+  background: rgba(15, 108, 189, 0.1);
+  color: var(--accent-1);
+}
+
+.edit-device-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.edit-device-form input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgba(15, 108, 189, 0.3);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: var(--surface-1);
+  color: var(--text-strong);
+  width: 100%;
+}
+
+.edit-device-form input:focus {
+  outline: none;
+  border-color: var(--accent-1);
+  box-shadow: 0 0 0 3px rgba(15, 108, 189, 0.1);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.edit-save,
+.edit-cancel {
+  padding: 0.4rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.edit-save {
+  background: rgba(29, 122, 85, 0.12);
+  color: var(--accent-success);
+}
+
+.edit-save:hover {
+  background: rgba(29, 122, 85, 0.2);
+  transform: scale(1.05);
+}
+
+.edit-cancel {
+  background: rgba(181, 71, 61, 0.08);
+  color: var(--accent-danger);
+}
+
+.edit-cancel:hover {
+  background: rgba(181, 71, 61, 0.15);
+  transform: scale(1.05);
+}
+
 .device-card .device-info h3 {
   font-size: 1.05rem;
   font-weight: 700;

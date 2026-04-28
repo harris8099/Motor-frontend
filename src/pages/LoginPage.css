@@ -4,10 +4,45 @@
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
+  position: relative;
   background:
     radial-gradient(circle at top left, rgba(15, 108, 189, 0.16), transparent 36%),
     radial-gradient(circle at bottom right, rgba(29, 122, 85, 0.14), transparent 32%),
     linear-gradient(180deg, #eef3f8 0%, #f7fafc 100%);
+}
+
+.login-theme-toggle {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text-strong, #16202c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.login-theme-toggle:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+}
+
+:root[data-theme='dark'] .login-theme-toggle {
+  background: rgba(18, 28, 39, 0.9);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #f7fbff;
+}
+
+:root[data-theme='dark'] .login-theme-toggle:hover {
+  background: rgba(28, 40, 54, 0.95);
 }
 
 .login-shell {
@@ -224,6 +259,13 @@
 }
 
 @media (max-width: 480px) {
+  .login-theme-toggle {
+    top: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+  }
+
   .login-hero {
     padding: 1.5rem 1rem;
   }
