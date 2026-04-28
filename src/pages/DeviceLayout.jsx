@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useParams, Link } from 'react-router-dom';
-import { ChevronLeft, Cpu, Info } from 'lucide-react';
+import { ChevronLeft, Cpu, Info, LogOut } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import { 
   IconOverview, IconAI, IconPower, IconTemp, 
@@ -7,7 +7,7 @@ import {
 } from '../components/CustomIcons';
 import './DeviceLayout.css';
 
-function DeviceLayout() {
+function DeviceLayout({ onLogout }) {
   const { deviceId } = useParams();
 
   const navItems = [
@@ -27,10 +27,16 @@ function DeviceLayout() {
       <aside className="sidebar">
         <div className="sidebar-header">
           <div className="sidebar-header-row">
-            <Link to="/" className="back-link">
-              <ChevronLeft size={20} />
-              Back to Devices
-            </Link>
+            <div className="sidebar-toolbar">
+              <Link to="/" className="back-link">
+                <ChevronLeft size={20} />
+                Back to Devices
+              </Link>
+              <button type="button" className="sidebar-logout" onClick={onLogout}>
+                <LogOut size={16} />
+                Logout
+              </button>
+            </div>
             <ThemeToggle />
           </div>
           <div className="device-info">

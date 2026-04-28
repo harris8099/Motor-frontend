@@ -1,0 +1,305 @@
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background:
+    radial-gradient(circle at top left, rgba(15, 108, 189, 0.16), transparent 36%),
+    radial-gradient(circle at bottom right, rgba(29, 122, 85, 0.14), transparent 32%),
+    linear-gradient(180deg, #eef3f8 0%, #f7fafc 100%);
+}
+
+.login-shell {
+  width: min(980px, 100%);
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 420px);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
+}
+
+.login-hero {
+  padding: 3rem;
+  background:
+    linear-gradient(160deg, rgba(15, 108, 189, 0.96), rgba(8, 52, 94, 0.98)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent);
+  color: #f8fbff;
+}
+
+.login-kicker {
+  display: inline-block;
+  margin-bottom: 1rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.login-hero h1 {
+  margin: 0 0 1rem;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.05;
+}
+
+.login-hero p {
+  margin: 0;
+  max-width: 34ch;
+  color: rgba(248, 251, 255, 0.86);
+  line-height: 1.6;
+}
+
+.login-note {
+  margin-top: 1.6rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #f8fbff;
+  font-size: 0.92rem;
+}
+
+.login-panel {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.login-panel__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.login-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 108, 189, 0.1);
+  color: var(--accent-1, #0f6cbd);
+}
+
+.login-panel__header h2 {
+  margin: 0 0 0.35rem;
+  color: var(--text-strong, #16202c);
+}
+
+.login-panel__header p {
+  margin: 0;
+  color: var(--text-muted, #5f6f82);
+  line-height: 1.5;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.login-form label {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-muted, #5f6f82);
+}
+
+.login-form input {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  font-size: 0.95rem;
+  color: var(--text-strong, #16202c);
+  background: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-form input:focus {
+  outline: none;
+  border-color: rgba(15, 108, 189, 0.38);
+  box-shadow: 0 0 0 4px rgba(15, 108, 189, 0.1);
+}
+
+.login-error {
+  margin-top: 0.35rem;
+  padding: 0.8rem 0.95rem;
+  border-radius: 12px;
+  background: rgba(181, 71, 61, 0.09);
+  border: 1px solid rgba(181, 71, 61, 0.16);
+  color: #b5473d;
+  font-size: 0.9rem;
+}
+
+.login-submit {
+  margin-top: 0.45rem;
+  border: 0;
+  border-radius: 12px;
+  padding: 0.95rem 1rem;
+  font-size: 0.96rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #0f6cbd, #0a5ea6);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: 0 16px 26px rgba(15, 108, 189, 0.24);
+}
+
+.login-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.login-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+@media (max-width: 820px) {
+  .login-page {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .login-shell {
+    grid-template-columns: 1fr;
+    width: 100%;
+    min-height: 100vh;
+    border-radius: 0;
+    border: none;
+  }
+
+  .login-hero {
+    padding: 2rem 1.5rem;
+    text-align: center;
+  }
+
+  .login-hero h1 {
+    font-size: 1.75rem;
+  }
+
+  .login-hero p {
+    max-width: none;
+  }
+
+  .login-note {
+    justify-content: center;
+    font-size: 0.85rem;
+  }
+
+  .login-panel {
+    padding: 1.5rem;
+  }
+
+  .login-panel__header {
+    margin-bottom: 1.25rem;
+  }
+
+  .login-form input {
+    padding: 1rem;
+    font-size: 16px; /* Prevent zoom on iOS */
+    min-height: 48px; /* Better touch target */
+  }
+
+  .login-submit {
+    padding: 1rem;
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  .login-icon {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-hero {
+    padding: 1.5rem 1rem;
+  }
+
+  .login-hero h1 {
+    font-size: 1.5rem;
+  }
+
+  .login-kicker {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .login-note {
+    padding: 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .login-panel {
+    padding: 1.25rem 1rem;
+  }
+
+  .login-panel__header h2 {
+    font-size: 1.25rem;
+  }
+
+  .login-panel__header p {
+    font-size: 0.875rem;
+  }
+}
+
+:root[data-theme='dark'] .login-page {
+  background:
+    radial-gradient(circle at top left, rgba(15, 108, 189, 0.18), transparent 36%),
+    radial-gradient(circle at bottom right, rgba(29, 122, 85, 0.14), transparent 32%),
+    linear-gradient(180deg, #09111a 0%, #0f1b28 100%);
+}
+
+:root[data-theme='dark'] .login-shell {
+  background: rgba(18, 28, 39, 0.92);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme='dark'] .login-panel {
+  background: rgba(18, 28, 39, 0.96);
+}
+
+:root[data-theme='dark'] .login-form input {
+  background: rgba(9, 17, 26, 0.88);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #f7fbff;
+}
+
+:root[data-theme='dark'] .login-form input:focus {
+  border-color: rgba(15, 108, 189, 0.6);
+  box-shadow: 0 0 0 4px rgba(15, 108, 189, 0.2);
+}
+
+:root[data-theme='dark'] .login-form label {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+:root[data-theme='dark'] .login-panel__header h2 {
+  color: #f7fbff;
+}
+
+:root[data-theme='dark'] .login-panel__header p {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+:root[data-theme='dark'] .login-icon {
+  background: rgba(15, 108, 189, 0.2);
+  color: #4fc3f7;
+}
+
+:root[data-theme='dark'] .login-error {
+  background: rgba(181, 71, 61, 0.15);
+  border-color: rgba(181, 71, 61, 0.3);
+}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Activity, Plus, Cpu, ArrowRight, Trash2, Search, Wifi, WifiOff, Clock, Layers, X, RefreshCw, Info } from 'lucide-react';
+import { Activity, Plus, Cpu, ArrowRight, Trash2, Search, Wifi, WifiOff, Clock, Layers, X, RefreshCw, Info, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { fetchDevices, createDevice, createDevicesBulk, deleteDevice, updateDevice } from '../api';
 import ThemeToggle from '../components/ThemeToggle';
@@ -7,7 +7,7 @@ import { getDeviceStatus } from '../utils/deviceStatus';
 import { formatISTDateTime } from '../utils/formatters';
 import './Home.css';
 
-function Home() {
+function Home({ onLogout }) {
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -201,6 +201,10 @@ function Home() {
                 <Info size={18} />
                 About
               </Link>
+              <button type="button" className="about-link-btn" onClick={onLogout} title="Logout">
+                <LogOut size={18} />
+                Logout
+              </button>
               <ThemeToggle />
             </div>
           </div>

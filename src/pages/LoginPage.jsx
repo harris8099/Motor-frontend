@@ -1,0 +1,106 @@
+import { useState, useEffect } from 'react';
+import { Lock, ShieldCheck } from 'lucide-react';
+import { login } from '../auth';
+import './LoginPage.css';
+
+const THEME_STORAGE_KEY = 'frontend-theme';
+
+function LoginPage({ onLogin }) {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Apply saved theme on mount
+  useEffect(() => {
+    const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    if (storedTheme === 'light' || storedTheme === 'dark') {
+      document.documentElement.dataset.theme = storedTheme;
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.dataset.theme = 'dark';
+    }
+  }, []);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const success = await login(username, password);
+      if (!success) {
+        setError('Invalid username or password.');
+        setIsLoading(false);
+        return;
+      }
+      onLogin();
+    } catch (err) {
+      setError('Login failed. Please try again.');
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="login-page">
+      <div className="login-shell">
+        <section className="login-hero">
+          <div className="login-kicker">Secure Access Gate</div>
+          <h1>Smart Motor Command Center</h1>
+          <p>
+            Securely access your motor monitoring dashboard with backend authentication.
+          </p>
+          <div className="login-note">
+            <ShieldCheck size={18} />
+            <span>
+              Secure login with encrypted password storage
+            </span>
+          </div>
+        </section>
+
+        <section className="login-panel">
+          <div className="login-panel__header">
+            <div className="login-icon">
+              <Lock size={20} />
+            </div>
+            <div>
+              <h2>Sign In</h2>
+              <p>Enter your credentials to access the dashboard.</p>
+            </div>
+          </div>
+
+          <form className="login-form" onSubmit={handleSubmit}>
+            <label htmlFor="login-username">Username</label>
+            <input
+              id="login-username"
+              type="text"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              placeholder="Enter username"
+              autoComplete="username"
+              required
+            />
+
+            <label htmlFor="login-password">Password</label>
+            <input
+              id="login-password"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Enter password"
+              autoComplete="current-password"
+              required
+            />
+
+            {error && <div className="login-error">{error}</div>}
+
+            <button type="submit" className="login-submit" disabled={isLoading}>
+              {isLoading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+export default LoginPage;
