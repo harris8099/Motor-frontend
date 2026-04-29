@@ -54,23 +54,33 @@
 }
 
 .sidebar-logout {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.4rem;
+  justify-content: center;
+  gap: 0.6rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.05);
   color: #d7e0ea;
   border-radius: 10px;
-  padding: 0.45rem 0.75rem;
-  font-size: 0.82rem;
+  padding: 0.7rem 0.95rem;
+  font-size: 0.92rem;
+  font-weight: 500;
+  width: 100%;
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .sidebar-logout:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background: rgba(220, 38, 38, 0.2);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: #fca5a5;
   transform: translateY(-1px);
+}
+
+.sidebar-footer {
+  padding: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: auto;
 }
 
 .device-info {
@@ -158,6 +168,11 @@
 
   .device-layout {
     flex-direction: column;
+  }
+
+  .sidebar-footer {
+    padding: 0 0.75rem 0.75rem 0.75rem;
+    border-top: none;
   }
 
   .device-content {

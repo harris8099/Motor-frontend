@@ -20,9 +20,9 @@ function PowerPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    async function loadData() {
+    async function loadData(silent = false) {
       try {
-        setLoading(true);
+        if (!silent) setLoading(true);
         setError('');
         const [dataRes, forecastRes] = await Promise.all([
           fetchDeviceData(deviceId),
@@ -34,12 +34,12 @@ function PowerPage() {
         console.error('Failed to load power data', err);
         setError('Could not load power data. Please check API connection.');
       } finally {
-        setLoading(false);
+        if (!silent) setLoading(false);
       }
     }
 
     loadData();
-    const interval = setInterval(loadData, 5000);
+    const interval = setInterval(() => loadData(true), 5000);
     return () => clearInterval(interval);
   }, [deviceId, electricityRate]);
 

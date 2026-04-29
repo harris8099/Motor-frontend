@@ -32,10 +32,6 @@ function DeviceLayout({ onLogout }) {
                 <ChevronLeft size={20} />
                 Back to Devices
               </Link>
-              <button type="button" className="sidebar-logout" onClick={onLogout}>
-                <LogOut size={16} />
-                Logout
-              </button>
             </div>
             <ThemeToggle />
           </div>
@@ -44,6 +40,8 @@ function DeviceLayout({ onLogout }) {
             <span className="device-label">{deviceId}</span>
           </div>
         </div>
+
+
 
         <nav className="sidebar-nav">
           {navItems.map((item) => (
@@ -59,6 +57,13 @@ function DeviceLayout({ onLogout }) {
             </NavLink>
           ))}
         </nav>
+
+        <div className="sidebar-footer">
+          <button type="button" className="sidebar-logout" onClick={onLogout}>
+            <LogOut size={18} />
+            Logout
+          </button>
+        </div>
       </aside>
 
       <main className="device-content">

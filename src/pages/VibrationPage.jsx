@@ -17,9 +17,9 @@ function VibrationPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    async function loadData() {
+    async function loadData(silent = false) {
       try {
-        setLoading(true);
+        if (!silent) setLoading(true);
         setError('');
         const dataRes = await fetchDeviceData(deviceId);
         setData(dataRes.data || []);
@@ -27,12 +27,12 @@ function VibrationPage() {
         console.error('Failed to load vibration data', err);
         setError('Could not load vibration data. Please check API connection.');
       } finally {
-        setLoading(false);
+        if (!silent) setLoading(false);
       }
     }
 
     loadData();
-    const interval = setInterval(loadData, 5000);
+    const interval = setInterval(() => loadData(true), 5000);
     return () => clearInterval(interval);
   }, [deviceId]);
 

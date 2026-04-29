@@ -79,27 +79,36 @@ function FaultsPage() {
     }
   };
 
+  const resolvingRef = React.useRef(false);
   useEffect(() => {
-    async function loadData() {
+    resolvingRef.current = resolvingFault !== null;
+  }, [resolvingFault]);
+
+  useEffect(() => {
+    async function loadData(silent = false) {
       try {
-        setLoading(true);
+        if (!silent) setLoading(true);
         setError('');
         const [dataRes, faultsRes] = await Promise.all([
           fetchDeviceData(deviceId),
           fetchDeviceFaults(deviceId, 50),
         ]);
         setData(dataRes.data || []);
-        setFaults(faultsRes || []);
+        
+        // Don't overwrite faults array if user is actively filling out the resolution form
+        if (!resolvingRef.current) {
+          setFaults(faultsRes || []);
+        }
       } catch (err) {
         console.error('Failed to load faults data', err);
         setError('Could not load fault data. Please check API connection.');
       } finally {
-        setLoading(false);
+        if (!silent) setLoading(false);
       }
     }
 
     loadData();
-    const interval = setInterval(loadData, 10000);
+    const interval = setInterval(() => loadData(true), 10000);
     return () => clearInterval(interval);
   }, [deviceId]);
 

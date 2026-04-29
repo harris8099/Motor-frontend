@@ -253,9 +253,9 @@ function Overview() {
   };
 
   useEffect(() => {
-    async function loadData() {
+    async function loadData(silent = false) {
       try {
-        setLoading(true);
+        if (!silent) setLoading(true);
         setError('');
         const [dataRes, predsRes] = await Promise.all([
           fetchDeviceData(deviceId),
@@ -268,12 +268,12 @@ function Overview() {
         console.error('Failed to load data', err);
         setError('Could not load telemetry. Please check API connection.');
       } finally {
-        setLoading(false);
+        if (!silent) setLoading(false);
       }
     }
 
     loadData();
-    const interval = setInterval(loadData, 5000);
+    const interval = setInterval(() => loadData(true), 5000);
     return () => clearInterval(interval);
   }, [deviceId]);
 

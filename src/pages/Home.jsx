@@ -33,9 +33,9 @@ function Home({ onLogout }) {
   // Active faults for fault indicators
   const [activeFaults, setActiveFaults] = useState([]);
 
-  async function loadDevices() {
+  async function loadDevices(silent = false) {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const data = await fetchDevices();
       // Transform backend data to frontend format
       const transformed = data.map(d => ({
@@ -52,7 +52,7 @@ function Home({ onLogout }) {
       console.error('Failed to load devices:', err);
       setError('Failed to load devices. Please check API connection.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }
 
@@ -69,7 +69,7 @@ function Home({ onLogout }) {
     loadDevices();
     loadActiveFaults();
     const interval = setInterval(() => {
-      loadDevices();
+      loadDevices(true);
       loadActiveFaults();
     }, 10000);
     return () => clearInterval(interval);

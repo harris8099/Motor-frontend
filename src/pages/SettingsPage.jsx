@@ -65,13 +65,10 @@ function SettingsPage() {
     }
     loadData();
     const interval = setInterval(async () => {
-      // Background refresh — only update form if user hasn't edited
-      if (dirty) return;
       try {
         const res = await fetchDeviceData(deviceId, 1);
         const rows = res.data || [];
         setData(rows);
-        if (rows.length > 0) populateForm(rows[0]);
       } catch (_) {}
     }, 10000);
     return () => clearInterval(interval);
