@@ -4,6 +4,7 @@ import { Thermometer, ThermometerSun, Flame, TrendingUp } from 'lucide-react';
 import { fetchDeviceData } from '../api';
 import MetricCard from '../components/MetricCard';
 import LiveChart from '../components/LiveChart';
+import TemperatureChart from '../components/TemperatureChart';
 import Breadcrumbs from '../components/Breadcrumbs';
 import LiveIndicator from '../components/LiveIndicator';
 import SkeletonCard from '../components/SkeletonCard';
@@ -128,7 +129,7 @@ function TemperaturePage() {
           <section className="chart-section">
             <h2>Temperature History</h2>
             <div className="panel chart-panel">
-              <LiveChart data={data} />
+              <TemperatureChart data={data} />
             </div>
           </section>
         </>

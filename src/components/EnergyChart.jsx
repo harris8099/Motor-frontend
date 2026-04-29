@@ -14,7 +14,7 @@ import { Line } from 'react-chartjs-2';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
-export default function LiveChart({ data }) {
+export default function EnergyChart({ data }) {
   const chartData = [...data].reverse();
 
   const options = {
@@ -40,29 +40,12 @@ export default function LiveChart({ data }) {
     scales: {
       x: {
         grid: { color: 'rgba(46, 132, 215, 0.08)' },
-        ticks: { color: '#5e7088', maxTicksLimit: 6, maxRotation: 45, minRotation: 45 },
+        ticks: { color: '#5e7088', maxTicksLimit: 10 },
       },
       y: {
-        type: 'linear',
-        display: true,
-        position: 'left',
         grid: { color: 'rgba(46, 132, 215, 0.08)' },
         ticks: { color: '#5e7088' },
         beginAtZero: true,
-        suggestedMin: 0,
-        suggestedMax: 100,
-        title: { display: true, text: 'RPM', color: '#2e84d7', font: { size: 10 } },
-      },
-      y1: {
-        type: 'linear',
-        display: true,
-        position: 'right',
-        grid: { drawOnChartArea: false },
-        ticks: { color: '#ef7c2e' },
-        beginAtZero: true,
-        suggestedMin: 0,
-        suggestedMax: 5,
-        title: { display: true, text: 'Current (A)', color: '#ef7c2e', font: { size: 10 } },
       },
     },
     interaction: {
@@ -72,28 +55,17 @@ export default function LiveChart({ data }) {
     },
   };
 
-  const labels = chartData.map((d) => new Date(d.ts).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour12: false, hour: '2-digit', minute: '2-digit' }));
+  const labels = chartData.map((d) => new Date(d.ts).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true, hour: '2-digit', minute: '2-digit' }));
 
   const plotData = {
     labels,
     datasets: [
       {
-        label: 'RPM',
-        data: chartData.map((d) => d.rpm),
-        borderColor: '#2e84d7',
-        backgroundColor: 'rgba(46, 132, 215, 0.18)',
+        label: 'Energy (kWh)',
+        data: chartData.map((d) => d.energy),
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16, 185, 129, 0.15)',
         fill: true,
-        yAxisID: 'y',
-        tension: 0.35,
-        pointRadius: 0,
-        pointHitRadius: 10,
-      },
-      {
-        label: 'Current (A)',
-        data: chartData.map((d) => d.current),
-        borderColor: '#ef7c2e',
-        backgroundColor: 'rgba(239, 124, 46, 0.18)',
-        yAxisID: 'y1',
         tension: 0.35,
         pointRadius: 0,
         pointHitRadius: 10,

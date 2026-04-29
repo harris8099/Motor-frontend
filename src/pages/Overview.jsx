@@ -7,6 +7,11 @@ import {
 import { fetchDeviceData, fetchDevicePredictions, triggerCloudAnalysis, triggerLocalAnalysis, fetchLatestAIResult } from '../api';
 import MetricCard from '../components/MetricCard';
 import LiveChart from '../components/LiveChart';
+import VoltageChart from '../components/VoltageChart';
+import PowerChart from '../components/PowerChart';
+import TemperatureChart from '../components/TemperatureChart';
+import FrequencyChart from '../components/FrequencyChart';
+import EnergyChart from '../components/EnergyChart';
 import Breadcrumbs from '../components/Breadcrumbs';
 import LiveIndicator from '../components/LiveIndicator';
 import GaugeMeter from '../components/GaugeMeter';
@@ -664,11 +669,46 @@ function Overview() {
             </div>
           </section>
 
-          {/* ── Telemetry Chart ───────────────────────────────────────── */}
+          {/* ── Telemetry Charts ───────────────────────────────────────── */}
           <section className="chart-section">
-            <h2>Telemetry History</h2>
+            <h2>RPM & Current History</h2>
             <div className="panel chart-panel">
               <LiveChart data={data} />
+            </div>
+          </section>
+
+          <section className="chart-section">
+            <h2>Voltage History</h2>
+            <div className="panel chart-panel">
+              <VoltageChart data={data} />
+            </div>
+          </section>
+
+          <section className="chart-section">
+            <h2>Power & Power Factor</h2>
+            <div className="panel chart-panel">
+              <PowerChart data={data} />
+            </div>
+          </section>
+
+          <section className="chart-section">
+            <h2>Temperature History</h2>
+            <div className="panel chart-panel">
+              <TemperatureChart data={data} />
+            </div>
+          </section>
+
+          <section className="chart-section">
+            <h2>Frequency Stability</h2>
+            <div className="panel chart-panel">
+              <FrequencyChart data={data} />
+            </div>
+          </section>
+
+          <section className="chart-section">
+            <h2>Energy Consumption</h2>
+            <div className="panel chart-panel">
+              <EnergyChart data={data} />
             </div>
           </section>
         </>

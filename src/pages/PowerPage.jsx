@@ -5,6 +5,7 @@ import { fetchDeviceData, fetchPowerForecast } from '../api';
 import MetricCard from '../components/MetricCard';
 import PowerForecast from '../components/PowerForecast';
 import LiveChart from '../components/LiveChart';
+import VoltageChart from '../components/VoltageChart';
 import Breadcrumbs from '../components/Breadcrumbs';
 import LiveIndicator from '../components/LiveIndicator';
 import SkeletonCard from '../components/SkeletonCard';
@@ -91,9 +92,17 @@ function PowerPage() {
 
           {/* Power History Chart */}
           <section className="chart-section">
-            <h2>Power History</h2>
+            <h2>Power & Current History</h2>
             <div className="panel chart-panel">
               <LiveChart data={data} />
+            </div>
+          </section>
+
+          {/* Voltage Chart */}
+          <section className="chart-section">
+            <h2>Voltage History</h2>
+            <div className="panel chart-panel">
+              <VoltageChart data={data} />
             </div>
           </section>
 

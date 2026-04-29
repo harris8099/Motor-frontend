@@ -133,7 +133,8 @@ section h2 {
 }
 
 .chart-panel {
-  min-height: 300px;
+  min-height: 220px;
+  padding: 0.75rem;
 }
 
 .metrics-grid {
@@ -950,10 +951,6 @@ section h2 {
   margin-bottom: 1.5rem;
 }
 
-.chart-panel {
-  padding: 1.25rem;
-}
-
 .chart-title {
   display: flex;
   align-items: center;
@@ -1589,8 +1586,17 @@ section h2 {
   }
 
   /* Chart section mobile */
+  .chart-section {
+    margin-bottom: 1rem;
+  }
+  
+  .chart-panel {
+    padding: 0.75rem;
+    min-height: auto;
+  }
+  
   .chart-container {
-    height: 160px;
+    height: 180px;
   }
 
   .mini-chart {
@@ -1649,7 +1655,7 @@ section h2 {
 
   /* Chart small mobile */
   .chart-container {
-    height: 140px;
+    height: 150px;
   }
 
   .chart-title {
