@@ -1,0 +1,228 @@
+/* filepath: src/components/FaultContextPanel.css */
+
+.fault-context-panel {
+  background: var(--bg-secondary, #f8fafc);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.fault-context-panel.loading {
+  min-height: 120px;
+}
+
+.fault-context-panel.error {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.context-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--text-primary, #1e293b);
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.context-header svg {
+  color: var(--warning-color, #f59e0b);
+}
+
+/* Skeleton loading */
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.skeleton-item {
+  height: 40px;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.error-message {
+  color: #dc2626;
+  font-size: 13px;
+  margin: 0;
+}
+
+/* Sensor grid */
+.sensor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.sensor-item {
+  background: var(--bg-primary, #fff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sensor-item.triggered {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.sensor-item.over-threshold {
+  border-color: #f97316;
+  background: #fff7ed;
+}
+
+.sensor-label {
+  font-size: 11px;
+  color: var(--text-secondary, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sensor-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #1e293b);
+}
+
+.sensor-unit {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-secondary, #64748b);
+  margin-left: 2px;
+}
+
+.sensor-threshold {
+  font-size: 11px;
+  color: var(--text-secondary, #64748b);
+}
+
+/* Diagnosis section */
+.diagnosis-section {
+  background: var(--bg-primary, #fff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.diagnosis-text {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-primary, #1e293b);
+  line-height: 1.5;
+}
+
+/* Factors and actions sections */
+.factors-section,
+.actions-section {
+  margin-bottom: 12px;
+}
+
+.factors-section:last-child,
+.actions-section:last-child {
+  margin-bottom: 0;
+}
+
+.factors-section h4,
+.actions-section h4 {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 8px 0;
+}
+
+.factors-list,
+.actions-list {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+  color: var(--text-primary, #1e293b);
+}
+
+.factors-list li,
+.actions-list li {
+  margin-bottom: 4px;
+}
+
+.actions-list li {
+  color: var(--accent-color, #0ea5e9);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .sensor-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dark theme support */
+:root[data-theme='dark'] .fault-context-panel {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme='dark'] .context-header,
+:root[data-theme='dark'] .sensor-value,
+:root[data-theme='dark'] .diagnosis-text,
+:root[data-theme='dark'] .factors-list,
+:root[data-theme='dark'] .actions-list {
+  color: var(--text-strong);
+}
+
+:root[data-theme='dark'] .fault-context-panel.error {
+  background: rgba(220, 38, 38, 0.1);
+  border-color: rgba(220, 38, 38, 0.2);
+}
+
+:root[data-theme='dark'] .sensor-item {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme='dark'] .sensor-item.triggered {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+:root[data-theme='dark'] .sensor-item.over-threshold {
+  background: rgba(249, 115, 22, 0.1);
+  border-color: rgba(249, 115, 22, 0.2);
+}
+
+:root[data-theme='dark'] .diagnosis-section {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme='dark'] .sensor-label,
+:root[data-theme='dark'] .sensor-unit,
+:root[data-theme='dark'] .sensor-threshold,
+:root[data-theme='dark'] .factors-section h4,
+:root[data-theme='dark'] .actions-section h4 {
+  color: var(--text-soft);
+}
+
+:root[data-theme='dark'] .actions-list li {
+  color: var(--accent-1);
+}
+
+:root[data-theme='dark'] .skeleton-item {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 75%);
+  background-size: 200% 100%;
+}

@@ -453,6 +453,64 @@
   color: var(--accent-1);
 }
 
+/* Device fault indicator */
+.device-fault-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  animation: pulse-fault 2s infinite;
+}
+
+@keyframes pulse-fault {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.device-fault-indicator.critical {
+  background: rgba(181, 71, 61, 0.15);
+  color: var(--accent-danger, #b5473d);
+}
+
+.device-fault-indicator.warning {
+  background: rgba(199, 138, 44, 0.15);
+  color: var(--accent-warm, #c78a2c);
+}
+
+.device-fault-indicator.info {
+  background: rgba(15, 108, 189, 0.15);
+  color: var(--accent-1, #0f6cbd);
+}
+
+.fault-count {
+  font-size: 0.7rem;
+  min-width: 1rem;
+  text-align: center;
+}
+
+/* Device card with fault styling */
+.device-card.has-fault {
+  border-left: 3px solid transparent;
+}
+
+.device-card.has-fault.critical {
+  border-left-color: var(--accent-danger, #b5473d);
+  background: linear-gradient(135deg, rgba(181, 71, 61, 0.03), transparent);
+}
+
+.device-card.has-fault.warning {
+  border-left-color: var(--accent-warm, #c78a2c);
+  background: linear-gradient(135deg, rgba(199, 138, 44, 0.03), transparent);
+}
+
+.device-card.has-fault.info {
+  border-left-color: var(--accent-1, #0f6cbd);
+  background: linear-gradient(135deg, rgba(15, 108, 189, 0.03), transparent);
+}
+
 .status-toggle {
   background: rgba(15, 23, 42, 0.04);
   border: 1px solid transparent;
@@ -479,6 +537,112 @@
 .edit-device-btn {
   background: rgba(15, 23, 42, 0.04);
   border: 1px solid transparent;
+}
+
+/* Devices with Active Faults Section */
+.devices-with-faults {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, rgba(181, 71, 61, 0.05), rgba(181, 71, 61, 0.02));
+  border: 1px solid rgba(181, 71, 61, 0.15);
+  border-radius: 12px;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.devices-with-faults h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+  color: var(--accent-danger);
+}
+
+.faulty-devices-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.faulty-device-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--surface-1);
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text-main);
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.faulty-device-item:hover {
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.faulty-device-item.critical {
+  border-left-color: var(--accent-danger);
+  background: linear-gradient(135deg, rgba(181, 71, 61, 0.06), transparent);
+}
+
+.faulty-device-item.warning {
+  border-left-color: var(--accent-warm);
+  background: linear-gradient(135deg, rgba(199, 138, 44, 0.06), transparent);
+}
+
+.faulty-device-item.info {
+  border-left-color: var(--accent-1);
+  background: linear-gradient(135deg, rgba(15, 108, 189, 0.06), transparent);
+}
+
+.faulty-device-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.faulty-device-name {
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.faulty-device-count {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.faulty-device-count .badge {
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.faulty-device-count .badge.critical {
+  background: rgba(181, 71, 61, 0.15);
+  color: var(--accent-danger);
+}
+
+.faulty-device-count .badge.warning {
+  background: rgba(199, 138, 44, 0.15);
+  color: var(--accent-warm);
+}
+
+.faulty-device-count .badge.info {
+  background: rgba(15, 108, 189, 0.15);
+  color: var(--accent-1);
+}
+
+.edit-device-btn {
   padding: 0.45rem;
   border-radius: 8px;
   cursor: pointer;

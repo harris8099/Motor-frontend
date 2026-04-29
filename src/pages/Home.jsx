@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Zap, Plus, Cpu, ArrowRight, Trash2, Search, Wifi, WifiOff, Clock, Layers, X, RefreshCw, Info, LogOut, Edit2, Check, XCircle } from 'lucide-react';
+import { Zap, Plus, Cpu, ArrowRight, Trash2, Search, Wifi, WifiOff, Clock, Layers, X, RefreshCw, Info, LogOut, Edit2, Check, XCircle, AlertTriangle, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { fetchDevices, createDevice, createDevicesBulk, deleteDevice, updateDevice } from '../api';
+import { fetchDevices, createDevice, createDevicesBulk, deleteDevice, updateDevice, fetchActiveFaults } from '../api';
 import ThemeToggle from '../components/ThemeToggle';
+import FaultsBanner from '../components/FaultsBanner';
 import { getDeviceStatus } from '../utils/deviceStatus';
 import { formatISTDateTime } from '../utils/formatters';
 import './Home.css';
@@ -28,6 +29,9 @@ function Home({ onLogout }) {
   // Edit device name
   const [editingDeviceId, setEditingDeviceId] = useState(null);
   const [editDeviceName, setEditDeviceName] = useState('');
+  
+  // Active faults for fault indicators
+  const [activeFaults, setActiveFaults] = useState([]);
 
   async function loadDevices() {
     try {
@@ -52,9 +56,22 @@ function Home({ onLogout }) {
     }
   }
 
+  async function loadActiveFaults() {
+    try {
+      const faults = await fetchActiveFaults();
+      setActiveFaults(faults);
+    } catch (err) {
+      console.error('Failed to load active faults:', err);
+    }
+  }
+
   useEffect(() => {
     loadDevices();
-    const interval = setInterval(loadDevices, 10000);
+    loadActiveFaults();
+    const interval = setInterval(() => {
+      loadDevices();
+      loadActiveFaults();
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -219,6 +236,20 @@ function Home({ onLogout }) {
     return `${Math.floor(diff / 86400)}d ago (${istTime})`;
   };
 
+  // Helper to get fault info for a device
+  const getDeviceFaultInfo = (deviceId) => {
+    const deviceFaults = activeFaults.filter(f => f.device_id === deviceId);
+    if (deviceFaults.length === 0) return null;
+    
+    const criticalCount = deviceFaults.filter(f => f.severity === 'critical').length;
+    const warningCount = deviceFaults.filter(f => f.severity === 'warning').length;
+    const infoCount = deviceFaults.filter(f => f.severity === 'info').length;
+    
+    if (criticalCount > 0) return { severity: 'critical', count: deviceFaults.length };
+    if (warningCount > 0) return { severity: 'warning', count: deviceFaults.length };
+    return { severity: 'info', count: deviceFaults.length };
+  };
+
   return (
     <div className="home-page">
       <header className="home-header">
@@ -244,8 +275,49 @@ function Home({ onLogout }) {
         </div>
       </header>
 
+      <FaultsBanner key={activeFaults.length} />
+
       <main className="home-main">
         {error && <div className="error-banner">{error}</div>}
+
+        {/* Devices with Active Faults */}
+        {(() => {
+          const devicesWithFaults = devices.filter(d => 
+            activeFaults.some(f => f.device_id === d.id)
+          );
+          if (devicesWithFaults.length === 0) return null;
+          return (
+            <section className="devices-with-faults">
+              <h2>
+                <AlertTriangle size={20} />
+                Devices with Active Faults ({devicesWithFaults.length})
+              </h2>
+              <div className="faulty-devices-list">
+                {devicesWithFaults.map(device => {
+                  const deviceFaults = activeFaults.filter(f => f.device_id === device.id);
+                  const criticalCount = deviceFaults.filter(f => f.severity === 'critical').length;
+                  const warningCount = deviceFaults.filter(f => f.severity === 'warning').length;
+                  return (
+                    <Link 
+                      key={device.id} 
+                      to={`/device/${device.id}/faults`}
+                      className={`faulty-device-item ${criticalCount > 0 ? 'critical' : warningCount > 0 ? 'warning' : 'info'}`}
+                    >
+                      <div className="faulty-device-info">
+                        <span className="faulty-device-name">{device.name || device.id}</span>
+                        <span className="faulty-device-count">
+                          {criticalCount > 0 && <span className="badge critical">{criticalCount} Critical</span>}
+                          {warningCount > 0 && <span className="badge warning">{warningCount} Warning</span>}
+                        </span>
+                      </div>
+                      <ArrowRight size={18} />
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          );
+        })()}
         
         {/* Stats Bar */}
         <div className="stats-bar">
@@ -410,16 +482,30 @@ function Home({ onLogout }) {
                 <p>{searchQuery ? 'No devices match your search' : 'No devices added yet'}</p>
               </div>
             ) : (
-              filteredDevices.map((device) => (
+              filteredDevices.map((device) => {
+                const faultInfo = getDeviceFaultInfo(device.id);
+                return (
                 <Link 
                   key={device.id} 
                   to={`/device/${device.id}/overview`}
-                  className={`device-card ${device.status}`}
+                  className={`device-card ${device.status} ${faultInfo ? 'has-fault' : ''} ${faultInfo?.severity || ''}`}
                 >
                   <div className="device-header">
                     <div className="device-icon">
                       <Cpu size={24} />
                     </div>
+                    {faultInfo && (
+                      <div className={`device-fault-indicator ${faultInfo.severity}`}>
+                        {faultInfo.severity === 'critical' ? (
+                          <AlertTriangle size={16} />
+                        ) : faultInfo.severity === 'warning' ? (
+                          <AlertCircle size={16} />
+                        ) : (
+                          <Info size={16} />
+                        )}
+                        <span className="fault-count">{faultInfo.count}</span>
+                      </div>
+                    )}
                     <div className="device-header-actions">
                       <button 
                         className="remove-btn"
@@ -504,7 +590,8 @@ function Home({ onLogout }) {
                     <ArrowRight size={20} />
                   </div>
                 </Link>
-              ))
+                );
+              })
             )}
           </div>
         </section>

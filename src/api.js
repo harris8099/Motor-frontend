@@ -13,8 +13,78 @@ export async function fetchDeviceData(deviceId, limit = 50) {
 }
 
 export async function fetchDeviceFaults(deviceId, limit = 10) {
-  const res = await fetch(`${API_BASE_URL}/faults/${deviceId}?limit=${limit}`, { headers });
+  const res = await fetch(`${API_BASE_URL}/faults/device/${deviceId}?limit=${limit}`, { headers });
   if (!res.ok) throw new Error('Failed to fetch faults');
+  return res.json();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Enhanced Fault Management API
+// ─────────────────────────────────────────────────────────────────────────────
+
+export async function fetchActiveFaults() {
+  const res = await fetch(`${API_BASE_URL}/faults/active`, { headers });
+  if (!res.ok) throw new Error('Failed to fetch active faults');
+  return res.json();
+}
+
+export async function fetchFaultsSummary() {
+  const res = await fetch(`${API_BASE_URL}/faults/summary`, { headers });
+  if (!res.ok) throw new Error('Failed to fetch faults summary');
+  return res.json();
+}
+
+export async function fetchDeviceFaultLogs(deviceId, status = null, limit = 50) {
+  const url = new URL(`${API_BASE_URL}/faults/device/${deviceId}`);
+  if (status) url.searchParams.append('status', status);
+  url.searchParams.append('limit', limit);
+  const res = await fetch(url, { headers });
+  if (!res.ok) throw new Error('Failed to fetch device fault logs');
+  return res.json();
+}
+
+export async function fetchAllFaults(status = null, severity = null, deviceId = null, limit = 100) {
+  const url = new URL(`${API_BASE_URL}/faults`);
+  if (status) url.searchParams.append('status', status);
+  if (severity) url.searchParams.append('severity', severity);
+  if (deviceId) url.searchParams.append('device_id', deviceId);
+  url.searchParams.append('limit', limit);
+  const res = await fetch(url, { headers });
+  if (!res.ok) throw new Error('Failed to fetch all faults');
+  return res.json();
+}
+
+export async function resolveFault(faultId, resolutionData) {
+  const res = await fetch(`${API_BASE_URL}/faults/${faultId}/resolve`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(resolutionData),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to resolve fault');
+  }
+  return res.json();
+}
+
+export async function deleteFault(faultId) {
+  const res = await fetch(`${API_BASE_URL}/faults/${faultId}`, {
+    method: 'DELETE',
+    headers,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to delete fault');
+  }
+  return res.json();
+}
+
+export async function fetchFaultContext(faultId) {
+  const res = await fetch(`${API_BASE_URL}/faults/${faultId}/context`, { headers });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to fetch fault context');
+  }
   return res.json();
 }
 
@@ -115,5 +185,46 @@ export async function deleteDevice(deviceId) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.detail || 'Failed to delete device');
   }
+  return res.json();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Remote Command API (cloud → ESP32 via poll)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Send an ack-faults command. Pass an array of fault names to ack specific ones,
+ *  or omit / pass empty array to ack all faults. */
+export async function sendAckFaults(deviceId, faults = []) {
+  const body = faults.length > 0 ? { faults } : {};
+  const res = await fetch(`${API_BASE_URL}/command/${deviceId}/ack_faults`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to send ack_faults command');
+  }
+  return res.json();
+}
+
+/** Send a set-protection command with the full protection config object. */
+export async function sendSetProtection(deviceId, protectionConfig) {
+  const res = await fetch(`${API_BASE_URL}/command/${deviceId}/set_protection`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(protectionConfig),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to send set_protection command');
+  }
+  return res.json();
+}
+
+/** Fetch the current pending command for a device (useful for debug/status UI). */
+export async function fetchPendingCommand(deviceId) {
+  const res = await fetch(`${API_BASE_URL}/command/${deviceId}/pending`, { headers });
+  if (!res.ok) throw new Error('Failed to fetch pending command');
   return res.json();
 }

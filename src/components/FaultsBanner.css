@@ -1,0 +1,213 @@
+.faults-banner {
+  position: relative;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.faults-banner.critical {
+  background: linear-gradient(135deg, rgba(181, 71, 61, 0.12), rgba(181, 71, 61, 0.06));
+  border-left: 4px solid var(--accent-danger, #b5473d);
+}
+
+.faults-banner.warning {
+  background: linear-gradient(135deg, rgba(199, 138, 44, 0.12), rgba(199, 138, 44, 0.06));
+  border-left: 4px solid var(--accent-warm, #c78a2c);
+}
+
+.faults-banner.info {
+  background: linear-gradient(135deg, rgba(15, 108, 189, 0.12), rgba(15, 108, 189, 0.06));
+  border-left: 4px solid var(--accent-1, #0f6cbd);
+}
+
+.banner-content {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.banner-icon {
+  flex-shrink: 0;
+}
+
+.faults-banner.critical .banner-icon {
+  color: var(--accent-danger, #b5473d);
+}
+
+.faults-banner.warning .banner-icon {
+  color: var(--accent-warm, #c78a2c);
+}
+
+.faults-banner.info .banner-icon {
+  color: var(--accent-1, #0f6cbd);
+}
+
+.banner-text {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.banner-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.faults-banner.critical .banner-title {
+  color: var(--accent-danger, #b5473d);
+}
+
+.faults-banner.warning .banner-title {
+  color: var(--accent-warm, #c78a2c);
+}
+
+.faults-banner.info .banner-title {
+  color: var(--accent-1, #0f6cbd);
+}
+
+.banner-details {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.badge {
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge.critical {
+  background: rgba(181, 71, 61, 0.15);
+  color: var(--accent-danger, #b5473d);
+}
+
+.badge.warning {
+  background: rgba(199, 138, 44, 0.15);
+  color: var(--accent-warm, #c78a2c);
+}
+
+.badge.info {
+  background: rgba(15, 108, 189, 0.15);
+  color: var(--accent-1, #0f6cbd);
+}
+
+.banner-action {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.faults-banner.critical .banner-action {
+  background: var(--accent-danger, #b5473d);
+  color: white;
+}
+
+.faults-banner.critical .banner-action:hover {
+  background: #9a3c33;
+}
+
+.faults-banner.warning .banner-action {
+  background: var(--accent-warm, #c78a2c);
+  color: white;
+}
+
+.faults-banner.warning .banner-action:hover {
+  background: #a87325;
+}
+
+.faults-banner.info .banner-action {
+  background: var(--accent-1, #0f6cbd);
+  color: white;
+}
+
+.faults-banner.info .banner-action:hover {
+  background: #0a5285;
+}
+
+.banner-dismiss {
+  margin-left: 0.5rem;
+  padding: 0.3rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 4px;
+  color: var(--text-soft);
+  transition: all 0.2s ease;
+}
+
+.banner-dismiss:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .faults-banner {
+    padding: 0.6rem 1rem;
+  }
+
+  .banner-content {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .banner-text {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+
+  .banner-action {
+    margin-left: 0;
+    margin-top: 0.25rem;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Dark theme support */
+:root[data-theme='dark'] .faults-banner.critical {
+  background: linear-gradient(135deg, rgba(181, 71, 61, 0.25), rgba(181, 71, 61, 0.1));
+}
+
+:root[data-theme='dark'] .faults-banner.warning {
+  background: linear-gradient(135deg, rgba(199, 138, 44, 0.25), rgba(199, 138, 44, 0.1));
+}
+
+:root[data-theme='dark'] .faults-banner.info {
+  background: linear-gradient(135deg, rgba(15, 108, 189, 0.25), rgba(15, 108, 189, 0.1));
+}
+
+:root[data-theme='dark'] .badge.critical {
+  background: rgba(181, 71, 61, 0.25);
+}
+
+:root[data-theme='dark'] .badge.warning {
+  background: rgba(199, 138, 44, 0.25);
+}
+
+:root[data-theme='dark'] .badge.info {
+  background: rgba(15, 108, 189, 0.25);
+}
