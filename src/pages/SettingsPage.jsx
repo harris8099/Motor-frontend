@@ -55,12 +55,41 @@ const DEFAULT_MAINT_FORM = {
   runtimeHours: '',
 };
 
-function toDateTimeLocalValue(value) {
+function formatLocalOffsetDateTime(value) {
   if (!value) return '';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return '';
+  const match = String(value).trim().match(
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?(Z|[+-]\d{2}:\d{2})?$/
+  );
+  if (!match) return '';
+  const [, year, month, day, hour, minute] = match;
+  return `${year}-${month}-${day}T${hour}:${minute}`;
+}
+
+function toIso8601WithLocalTimezone(value) {
+  const match = String(value).trim().match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
+  if (!match) return null;
+  const [, year, month, day, hour, minute] = match;
+  const dt = new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    0,
+    0
+  );
+  if (Number.isNaN(dt.getTime())) return null;
+  const offsetMinutes = -dt.getTimezoneOffset();
+  const sign = offsetMinutes >= 0 ? '+' : '-';
+  const absOffsetMinutes = Math.abs(offsetMinutes);
   const pad = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const tzHours = Math.floor(absOffsetMinutes / 60);
+  const tzMinutes = absOffsetMinutes % 60;
+  return `${year}-${month}-${day}T${hour}:${minute}:00${sign}${pad(tzHours)}:${pad(tzMinutes)}`;
+}
+
+function toDateTimeLocalValue(value) {
+  return formatLocalOffsetDateTime(value);
 }
 
 function primaryButtonStyle(enabled, colorA, colorB) {
@@ -138,10 +167,19 @@ function SettingsPage() {
   const [pendingCommand, setPendingCommand] = useState(null);
   const [commandHistory, setCommandHistory] = useState([]);
   const [commandError, setCommandError] = useState('');
+  const [actionError, setActionError] = useState('');
 
   const showToast = (msg, ok = true) => {
     setToast({ msg, ok });
     setTimeout(() => setToast({ msg: '', ok: true }), 4500);
+  };
+
+  const buildQueuedMessage = (baseMessage, response) => {
+    const replaced = Number(response?.replacedPendingCommands || 0);
+    if (replaced > 0) {
+      return `${baseMessage} Replaced ${replaced} older pending command${replaced === 1 ? '' : 's'}.`;
+    }
+    return baseMessage;
   };
 
   const populateForm = (row) => {
@@ -244,6 +282,7 @@ function SettingsPage() {
 
   const handleSend = async () => {
     setSending(true);
+    setActionError('');
     try {
       const payload = {};
       FIELD_DEFS.forEach((f) => {
@@ -251,10 +290,12 @@ function SettingsPage() {
         if (raw === '' || raw === null || raw === undefined) return;
         payload[f.key] = f.step < 1 ? parseFloat(raw) : parseInt(raw, 10);
       });
-      await sendSetProtection(deviceId, payload);
-      showToast('Protection settings queued. ESP32 will apply them on the next poll.', true);
+      const response = await sendSetProtection(deviceId, payload);
+      setActionError('');
+      showToast(buildQueuedMessage('Protection settings queued. ESP32 will apply them on the next poll.', response), true);
       setDirty(false);
     } catch (err) {
+      setActionError(`Protection settings rejected: ${err.message}`);
       showToast(`Failed to send protection settings: ${err.message}`, false);
     } finally {
       setSending(false);
@@ -263,15 +304,16 @@ function SettingsPage() {
 
   const handleMaintenanceSend = async () => {
     setMaintSending(true);
+    setActionError('');
     try {
       const payload = {};
 
       if (maintForm.nextMaintenanceTime) {
-        const dt = new Date(maintForm.nextMaintenanceTime);
-        if (Number.isNaN(dt.getTime())) {
+        const nextMaintenanceTime = toIso8601WithLocalTimezone(maintForm.nextMaintenanceTime);
+        if (!nextMaintenanceTime) {
           throw new Error('Invalid maintenance date/time');
         }
-        payload.nextMaintenanceTime = dt.toISOString().replace('Z', '+00:00');
+        payload.nextMaintenanceTime = nextMaintenanceTime;
       }
 
       if (maintForm.totalLifeCycleHours !== '') {
@@ -294,10 +336,12 @@ function SettingsPage() {
         payload.uptimeSeconds = Math.round(runtime * 3600);
       }
 
-      await sendSetMaintenance(deviceId, payload);
-      showToast('Maintenance and runtime command queued. ESP32 will apply it on the next poll.', true);
+      const response = await sendSetMaintenance(deviceId, payload);
+      setActionError('');
+      showToast(buildQueuedMessage('Maintenance and runtime command queued. ESP32 will apply it on the next poll.', response), true);
       setMaintDirty(false);
     } catch (err) {
+      setActionError(`Maintenance command rejected: ${err.message}`);
       showToast(`Failed to send maintenance command: ${err.message}`, false);
     } finally {
       setMaintSending(false);
@@ -306,15 +350,18 @@ function SettingsPage() {
 
   const handleRuntimeOnlySend = async () => {
     setMaintSending(true);
+    setActionError('');
     try {
       const runtime = parseFloat(maintForm.runtimeHours);
       if (!Number.isFinite(runtime) || runtime < 0) {
         throw new Error('Enter a valid runtime in hours');
       }
-      await sendSetRuntime(deviceId, Math.round(runtime * 3600));
-      showToast('Runtime command queued. ESP32 will apply it on the next poll.', true);
+      const response = await sendSetRuntime(deviceId, Math.round(runtime * 3600));
+      setActionError('');
+      showToast(buildQueuedMessage('Runtime command queued. ESP32 will apply it on the next poll.', response), true);
       setMaintDirty(false);
     } catch (err) {
+      setActionError(`Runtime command rejected: ${err.message}`);
       showToast(`Failed to send runtime command: ${err.message}`, false);
     } finally {
       setMaintSending(false);
@@ -323,10 +370,13 @@ function SettingsPage() {
 
   const handleResetEnergy = async () => {
     setMaintSending(true);
+    setActionError('');
     try {
-      await sendResetEnergy(deviceId);
-      showToast('Energy reset command queued. ESP32 will apply it on the next poll.', true);
+      const response = await sendResetEnergy(deviceId);
+      setActionError('');
+      showToast(buildQueuedMessage('Energy reset command queued. ESP32 will apply it on the next poll.', response), true);
     } catch (err) {
+      setActionError(`Energy reset rejected: ${err.message}`);
       showToast(`Failed to queue energy reset: ${err.message}`, false);
     } finally {
       setMaintSending(false);
@@ -335,10 +385,13 @@ function SettingsPage() {
 
   const handleClearMaintenance = async () => {
     setMaintSending(true);
+    setActionError('');
     try {
-      await sendClearMaintenance(deviceId);
-      showToast('Clear maintenance command queued. ESP32 will clear it on the next poll.', true);
+      const response = await sendClearMaintenance(deviceId);
+      setActionError('');
+      showToast(buildQueuedMessage('Clear maintenance command queued. ESP32 will clear it on the next poll.', response), true);
     } catch (err) {
+      setActionError(`Clear maintenance rejected: ${err.message}`);
       showToast(`Failed to queue clear maintenance: ${err.message}`, false);
     } finally {
       setMaintSending(false);
@@ -361,6 +414,8 @@ function SettingsPage() {
         return '#27ae60';
       case 'pending':
         return '#f39c12';
+      case 'cancelled':
+        return '#9b59b6';
       case 'failed':
         return '#e74c3c';
       case 'expired':
@@ -378,6 +433,48 @@ function SettingsPage() {
     if (cmd?.includes('clear')) return <RefreshCw size={14} />;
     return <Terminal size={14} />;
   };
+
+  const formatNumeric = (value, digits = 2) => {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return '--';
+    return Number.isInteger(num) ? String(num) : num.toFixed(digits);
+  };
+
+  const currentProtectionItems = latest ? FIELD_DEFS.map((field) => ({
+    key: field.key,
+    label: field.label,
+    value: latest[field.dataKey],
+    unit: field.unit,
+  })) : [];
+
+  const currentMaintenanceItems = latest ? [
+    {
+      key: 'nextMaintenanceTime',
+      label: 'Next Maintenance',
+      value: formatDateTime(latest.maint_next_time),
+      unit: '',
+    },
+    {
+      key: 'totalLifeCycleHours',
+      label: 'Total Life Cycle',
+      value: formatNumeric(latest.maint_total_hours, 1),
+      unit: 'h',
+    },
+    {
+      key: 'maintenanceHoursLimit',
+      label: 'Maintenance Interval',
+      value: formatNumeric(latest.maint_hours_limit, 1),
+      unit: 'h',
+    },
+    {
+      key: 'runtimeHours',
+      label: 'Current Runtime',
+      value: latest.uptime_seconds !== null && latest.uptime_seconds !== undefined
+        ? formatNumeric(Number(latest.uptime_seconds) / 3600, 2)
+        : '--',
+      unit: 'h',
+    },
+  ] : [];
 
   const CommandStatus = ({ status }) => (
     <div className="status-dot-indicator" style={{ color: statusColor(status) }}>
@@ -431,6 +528,7 @@ function SettingsPage() {
       </header>
 
       {error && <div className="error-banner">{error}</div>}
+      {actionError && <div className="error-banner">{actionError}</div>}
 
       {toast.msg && (
         <div
@@ -614,6 +712,57 @@ function SettingsPage() {
                   pending command, applies the new protection or maintenance/runtime settings, then acknowledges
                   the command back to the backend.
                 </p>
+              </div>
+            </div>
+          </section>
+
+          <section className="metrics-section">
+            <div className="section-header-with-icon">
+              <AlertCircle size={20} />
+              <h2 style={{ margin: 0 }}>Current Applied Config</h2>
+            </div>
+            <p style={{ margin: '0 0 16px', opacity: 0.68, fontSize: '0.88rem' }}>
+              These values come from the latest telemetry row, so they show what the ESP most recently reported as live.
+              {latest?.ts ? ` Last update: ${formatDateTime(latest.ts)}.` : ''}
+            </p>
+
+            <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+              <div className="minimal-debug-card">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem', opacity: 0.8 }}>
+                  <Shield size={16} />
+                  <span style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                    Live Protection
+                  </span>
+                </div>
+                <div style={{ display: 'grid', gap: '10px' }}>
+                  {currentProtectionItems.map((item) => (
+                    <div key={item.key} style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px' }}>
+                      <span style={{ opacity: 0.68 }}>{item.label}</span>
+                      <strong>
+                        {formatNumeric(item.value)}{item.unit ? ` ${item.unit}` : ''}
+                      </strong>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="minimal-debug-card">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem', opacity: 0.8 }}>
+                  <Wrench size={16} />
+                  <span style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                    Live Maintenance
+                  </span>
+                </div>
+                <div style={{ display: 'grid', gap: '10px' }}>
+                  {currentMaintenanceItems.map((item) => (
+                    <div key={item.key} style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px' }}>
+                      <span style={{ opacity: 0.68 }}>{item.label}</span>
+                      <strong>
+                        {item.value}{item.unit ? ` ${item.unit}` : ''}
+                      </strong>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </section>

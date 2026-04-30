@@ -6,6 +6,41 @@ const headers = {
   'x-api-key': API_KEY,
 };
 
+function formatValidationLocation(loc) {
+  if (!Array.isArray(loc) || loc.length === 0) return 'request';
+  const filtered = loc.filter((part) => part !== 'body');
+  if (filtered.length === 0) return 'request body';
+  return filtered.join('.');
+}
+
+function extractApiErrorMessage(errorPayload, fallbackMessage) {
+  const detail = errorPayload?.detail;
+  if (typeof detail === 'string' && detail.trim()) return detail.trim();
+  if (Array.isArray(detail) && detail.length > 0) {
+    return detail
+      .map((item) => {
+        if (typeof item === 'string') return item;
+        if (item && typeof item === 'object') {
+          const location = formatValidationLocation(item.loc);
+          const message = typeof item.msg === 'string' ? item.msg : 'Invalid value';
+          return `${location}: ${message}`;
+        }
+        return null;
+      })
+      .filter(Boolean)
+      .join(' | ');
+  }
+  if (typeof errorPayload?.message === 'string' && errorPayload.message.trim()) {
+    return errorPayload.message.trim();
+  }
+  return fallbackMessage;
+}
+
+async function parseApiError(res, fallbackMessage) {
+  const errorPayload = await res.json().catch(() => ({}));
+  throw new Error(extractApiErrorMessage(errorPayload, fallbackMessage));
+}
+
 export async function fetchDeviceData(deviceId, limit = 50) {
   const res = await fetch(`${API_BASE_URL}/data/${deviceId}?limit=${limit}`, { headers });
   if (!res.ok) throw new Error('Failed to fetch data');
@@ -60,10 +95,7 @@ export async function resolveFault(faultId, resolutionData) {
     headers,
     body: JSON.stringify(resolutionData),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Failed to resolve fault');
-  }
+  if (!res.ok) await parseApiError(res, 'Failed to resolve fault');
   return res.json();
 }
 
@@ -72,19 +104,13 @@ export async function deleteFault(faultId) {
     method: 'DELETE',
     headers,
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Failed to delete fault');
-  }
+  if (!res.ok) await parseApiError(res, 'Failed to delete fault');
   return res.json();
 }
 
 export async function fetchFaultContext(faultId) {
   const res = await fetch(`${API_BASE_URL}/faults/${faultId}/context`, { headers });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Failed to fetch fault context');
-  }
+  if (!res.ok) await parseApiError(res, 'Failed to fetch fault context');
   return res.json();
 }
 
@@ -149,10 +175,7 @@ export async function createDevice(device) {
     headers,
     body: JSON.stringify(device),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Failed to create device');
-  }
+  if (!res.ok) await parseApiError(res, 'Failed to create device');
   return res.json();
 }
 
@@ -181,10 +204,7 @@ export async function deleteDevice(deviceId) {
     method: 'DELETE',
     headers,
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Failed to delete device');
-  }
+  if (!res.ok) await parseApiError(res, 'Failed to delete device');
   return res.json();
 }
 
@@ -201,10 +221,7 @@ export async function sendAckFaults(deviceId, faults = []) {
     headers,
     body: JSON.stringify(body),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Failed to send ack_faults command');
-  }
+  if (!res.ok) await parseApiError(res, 'Failed to send ack_faults command');
   return res.json();
 }
 
@@ -215,10 +232,7 @@ export async function sendSetProtection(deviceId, protectionConfig) {
     headers,
     body: JSON.stringify(protectionConfig),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Failed to send set_protection command');
-  }
+  if (!res.ok) await parseApiError(res, 'Failed to send set_protection command');
   return res.json();
 }
 
@@ -228,10 +242,7 @@ export async function sendSetMaintenance(deviceId, maintenanceConfig) {
     headers,
     body: JSON.stringify(maintenanceConfig),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Failed to send set_maintenance command');
-  }
+  if (!res.ok) await parseApiError(res, 'Failed to send set_maintenance command');
   return res.json();
 }
 
@@ -241,10 +252,7 @@ export async function sendSetRuntime(deviceId, uptimeSeconds) {
     headers,
     body: JSON.stringify({ uptimeSeconds }),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Failed to send set_runtime command');
-  }
+  if (!res.ok) await parseApiError(res, 'Failed to send set_runtime command');
   return res.json();
 }
 
@@ -254,10 +262,7 @@ export async function sendResetEnergy(deviceId) {
     headers,
     body: JSON.stringify({}),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Failed to send reset_energy command');
-  }
+  if (!res.ok) await parseApiError(res, 'Failed to send reset_energy command');
   return res.json();
 }
 
@@ -267,10 +272,7 @@ export async function sendClearMaintenance(deviceId) {
     headers,
     body: JSON.stringify({}),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Failed to send clear_maintenance command');
-  }
+  if (!res.ok) await parseApiError(res, 'Failed to send clear_maintenance command');
   return res.json();
 }
 
