@@ -2388,3 +2388,113 @@ section h2 {
   font-weight: 600;
   color: var(--text-strong);
 }
+
+/* Minimalist Debug Panel Styles */
+.minimal-debug-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.minimal-debug-card:hover {
+  border-color: var(--panel-border-hover);
+  box-shadow: var(--soft-shadow);
+}
+
+.status-dot-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.status-dot.acked { background-color: #27ae60; box-shadow: 0 0 8px rgba(39, 174, 96, 0.4); }
+.status-dot.pending { background-color: #f39c12; box-shadow: 0 0 8px rgba(243, 156, 18, 0.4); }
+.status-dot.failed { background-color: #e74c3c; box-shadow: 0 0 8px rgba(231, 76, 60, 0.4); }
+.status-dot.expired { background-color: #95a5a6; }
+
+.command-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-left: 1px solid var(--border-subtle);
+  margin-left: 0.5rem;
+  padding-left: 1.25rem;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.command-timeline::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+.command-timeline-item {
+  position: relative;
+  padding-bottom: 1.5rem;
+}
+
+.command-timeline-item::before {
+  content: '';
+  position: absolute;
+  left: calc(-1.25rem - 4.5px);
+  top: 0.5rem;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border-strong);
+  border: 2px solid var(--bg-canvas);
+}
+
+.command-timeline-item.active::before {
+  background: var(--accent-1);
+}
+
+.compact-code {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  background: rgba(0, 0, 0, 0.03);
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin: 0.5rem 0;
+  overflow-x: auto;
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
+}
+
+:root[data-theme='dark'] .compact-code {
+  background: rgba(0, 0, 0, 0.25);
+  color: #cbd5e1;
+}
+
+.command-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.command-item-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-strong);
+}
+
+.command-item-meta {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}

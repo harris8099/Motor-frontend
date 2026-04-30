@@ -11,6 +11,13 @@ import {
   Wrench,
   RotateCcw,
   BatteryCharging,
+  History,
+  Activity,
+  Shield,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  Terminal,
 } from 'lucide-react';
 import {
   fetchDeviceData,
@@ -363,6 +370,43 @@ function SettingsPage() {
     }
   };
 
+  const getCommandIcon = (cmd) => {
+    if (cmd?.includes('protection')) return <Shield size={14} />;
+    if (cmd?.includes('maintenance')) return <Wrench size={14} />;
+    if (cmd?.includes('runtime')) return <Timer size={14} />;
+    if (cmd?.includes('energy')) return <BatteryCharging size={14} />;
+    if (cmd?.includes('clear')) return <RefreshCw size={14} />;
+    return <Terminal size={14} />;
+  };
+
+  const CommandStatus = ({ status }) => (
+    <div className="status-dot-indicator" style={{ color: statusColor(status) }}>
+      <div className={`status-dot ${status}`} />
+      {status}
+    </div>
+  );
+
+  const CommandHistoryItem = ({ item, isActive = false }) => (
+    <div className={`command-timeline-item ${isActive ? 'active' : ''}`}>
+      <div className="command-item-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ color: isActive ? 'var(--accent-1)' : 'var(--text-muted)' }}>
+            {getCommandIcon(item.command)}
+          </span>
+          <span className="command-item-name">{item.command}</span>
+        </div>
+        <CommandStatus status={item.status} />
+      </div>
+      <div className="command-item-meta">
+        <span>ID {item.id} • {formatDateTime(item.created_at)}</span>
+        {item.acked_at && <span>Acked {formatDateTime(item.acked_at)}</span>}
+      </div>
+      <pre className="compact-code">
+        {JSON.stringify(item.payload ?? {}, null, 2)}
+      </pre>
+    </div>
+  );
+
   return (
     <div className="page-container">
       <Breadcrumbs />
@@ -575,76 +619,48 @@ function SettingsPage() {
           </section>
 
           <section className="metrics-section">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <div className="section-header-with-icon">
+              <Activity size={20} />
               <h2 style={{ margin: 0 }}>Command Debug Panel</h2>
-              <span style={{ opacity: 0.65, fontSize: '0.85rem' }}>Refreshes every 5 seconds</span>
             </div>
 
             {commandError && (
               <div className="error-banner" style={{ marginBottom: '12px' }}>{commandError}</div>
             )}
 
-            <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
-              <div className="metric-card" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ opacity: 0.7, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  Current Pending Command
+            <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+              <div className="minimal-debug-card">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.25rem', opacity: 0.8 }}>
+                  <Clock size={16} />
+                  <span style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                    Pending Queue
+                  </span>
                 </div>
                 {pendingCommand ? (
-                  <>
-                    <strong style={{ fontSize: '1rem' }}>{pendingCommand.command}</strong>
-                    <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>ID: {pendingCommand.id}</div>
-                    <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.78rem', opacity: 0.82 }}>
-                      {JSON.stringify(pendingCommand.payload ?? {}, null, 2)}
-                    </pre>
-                  </>
+                  <CommandHistoryItem item={pendingCommand} isActive={true} />
                 ) : (
-                  <div style={{ opacity: 0.7 }}>No pending command in queue.</div>
+                  <div style={{ padding: '2rem 1rem', textAlign: 'center', opacity: 0.5, fontSize: '0.88rem' }}>
+                    <CheckCircle2 size={32} style={{ marginBottom: '12px', opacity: 0.3 }} />
+                    <p>No commands waiting for device</p>
+                  </div>
                 )}
               </div>
 
-              <div className="metric-card" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ opacity: 0.7, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  Recent Command History
+              <div className="minimal-debug-card">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.25rem', opacity: 0.8 }}>
+                  <History size={16} />
+                  <span style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                    Activity History
+                  </span>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '340px', overflowY: 'auto' }}>
+                <div className="command-timeline" style={{ maxHeight: '450px', overflowY: 'auto' }}>
                   {commandHistory.length === 0 && (
-                    <div style={{ opacity: 0.7 }}>No commands recorded yet.</div>
+                    <div style={{ padding: '2rem 1rem', textAlign: 'center', opacity: 0.5, fontSize: '0.88rem' }}>
+                      <p>No activity recorded</p>
+                    </div>
                   )}
                   {commandHistory.map((item) => (
-                    <div
-                      key={item.id}
-                      style={{
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        borderRadius: '8px',
-                        padding: '10px 12px',
-                        background: 'rgba(255,255,255,0.03)',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '6px' }}>
-                        <strong style={{ fontSize: '0.92rem' }}>{item.command}</strong>
-                        <span
-                          style={{
-                            color: statusColor(item.status),
-                            border: `1px solid ${statusColor(item.status)}55`,
-                            borderRadius: '999px',
-                            padding: '2px 8px',
-                            fontSize: '0.72rem',
-                            textTransform: 'uppercase',
-                          }}
-                        >
-                          {item.status}
-                        </span>
-                      </div>
-                      <div style={{ fontSize: '0.76rem', opacity: 0.7, marginBottom: '6px' }}>
-                        ID {item.id} | queued {formatDateTime(item.created_at)}
-                      </div>
-                      <div style={{ fontSize: '0.76rem', opacity: 0.7, marginBottom: '6px' }}>
-                        acked {formatDateTime(item.acked_at)}
-                      </div>
-                      <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.74rem', opacity: 0.8 }}>
-                        {JSON.stringify(item.payload ?? {}, null, 2)}
-                      </pre>
-                    </div>
+                    <CommandHistoryItem key={item.id} item={item} />
                   ))}
                 </div>
               </div>
