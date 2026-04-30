@@ -19,6 +19,8 @@ import {
   sendSetRuntime,
   sendResetEnergy,
   sendClearMaintenance,
+  fetchPendingCommand,
+  fetchCommandHistory,
 } from '../api';
 import Breadcrumbs from '../components/Breadcrumbs';
 import LiveIndicator from '../components/LiveIndicator';
@@ -126,6 +128,9 @@ function SettingsPage() {
   const [maintDirty, setMaintDirty] = useState(false);
   const [maintSending, setMaintSending] = useState(false);
   const [toast, setToast] = useState({ msg: '', ok: true });
+  const [pendingCommand, setPendingCommand] = useState(null);
+  const [commandHistory, setCommandHistory] = useState([]);
+  const [commandError, setCommandError] = useState('');
 
   const showToast = (msg, ok = true) => {
     setToast({ msg, ok });
@@ -183,6 +188,33 @@ function SettingsPage() {
       } catch (_) {}
     }, 10000);
     return () => clearInterval(interval);
+  }, [deviceId]);
+
+  useEffect(() => {
+    let alive = true;
+
+    async function loadCommandDebug() {
+      try {
+        const [pending, history] = await Promise.all([
+          fetchPendingCommand(deviceId),
+          fetchCommandHistory(deviceId, 8),
+        ]);
+        if (!alive) return;
+        setPendingCommand(pending?.command ? pending : null);
+        setCommandHistory(Array.isArray(history?.commands) ? history.commands : []);
+        setCommandError('');
+      } catch (err) {
+        if (!alive) return;
+        setCommandError('Unable to load command status');
+      }
+    }
+
+    loadCommandDebug();
+    const interval = setInterval(loadCommandDebug, 5000);
+    return () => {
+      alive = false;
+      clearInterval(interval);
+    };
   }, [deviceId]);
 
   const handleChange = (key, value) => {
@@ -308,6 +340,28 @@ function SettingsPage() {
 
   const latest = data.length > 0 ? data[0] : null;
   const isLive = isReadingLive(latest);
+
+  const formatDateTime = (value) => {
+    if (!value) return '--';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return String(value);
+    return d.toLocaleString();
+  };
+
+  const statusColor = (status) => {
+    switch (status) {
+      case 'acked':
+        return '#27ae60';
+      case 'pending':
+        return '#f39c12';
+      case 'failed':
+        return '#e74c3c';
+      case 'expired':
+        return '#95a5a6';
+      default:
+        return '#bdc3c7';
+    }
+  };
 
   return (
     <div className="page-container">
@@ -516,6 +570,83 @@ function SettingsPage() {
                   pending command, applies the new protection or maintenance/runtime settings, then acknowledges
                   the command back to the backend.
                 </p>
+              </div>
+            </div>
+          </section>
+
+          <section className="metrics-section">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <h2 style={{ margin: 0 }}>Command Debug Panel</h2>
+              <span style={{ opacity: 0.65, fontSize: '0.85rem' }}>Refreshes every 5 seconds</span>
+            </div>
+
+            {commandError && (
+              <div className="error-banner" style={{ marginBottom: '12px' }}>{commandError}</div>
+            )}
+
+            <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+              <div className="metric-card" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ opacity: 0.7, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Current Pending Command
+                </div>
+                {pendingCommand ? (
+                  <>
+                    <strong style={{ fontSize: '1rem' }}>{pendingCommand.command}</strong>
+                    <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>ID: {pendingCommand.id}</div>
+                    <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.78rem', opacity: 0.82 }}>
+                      {JSON.stringify(pendingCommand.payload ?? {}, null, 2)}
+                    </pre>
+                  </>
+                ) : (
+                  <div style={{ opacity: 0.7 }}>No pending command in queue.</div>
+                )}
+              </div>
+
+              <div className="metric-card" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ opacity: 0.7, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Recent Command History
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '340px', overflowY: 'auto' }}>
+                  {commandHistory.length === 0 && (
+                    <div style={{ opacity: 0.7 }}>No commands recorded yet.</div>
+                  )}
+                  {commandHistory.map((item) => (
+                    <div
+                      key={item.id}
+                      style={{
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: '8px',
+                        padding: '10px 12px',
+                        background: 'rgba(255,255,255,0.03)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '6px' }}>
+                        <strong style={{ fontSize: '0.92rem' }}>{item.command}</strong>
+                        <span
+                          style={{
+                            color: statusColor(item.status),
+                            border: `1px solid ${statusColor(item.status)}55`,
+                            borderRadius: '999px',
+                            padding: '2px 8px',
+                            fontSize: '0.72rem',
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          {item.status}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.76rem', opacity: 0.7, marginBottom: '6px' }}>
+                        ID {item.id} | queued {formatDateTime(item.created_at)}
+                      </div>
+                      <div style={{ fontSize: '0.76rem', opacity: 0.7, marginBottom: '6px' }}>
+                        acked {formatDateTime(item.acked_at)}
+                      </div>
+                      <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.74rem', opacity: 0.8 }}>
+                        {JSON.stringify(item.payload ?? {}, null, 2)}
+                      </pre>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </section>

@@ -280,3 +280,9 @@ export async function fetchPendingCommand(deviceId) {
   if (!res.ok) throw new Error('Failed to fetch pending command');
   return res.json();
 }
+
+export async function fetchCommandHistory(deviceId, limit = 10) {
+  const res = await fetch(`${API_BASE_URL}/command/${deviceId}/history?limit=${limit}`, { headers });
+  if (!res.ok) throw new Error('Failed to fetch command history');
+  return res.json();
+}
