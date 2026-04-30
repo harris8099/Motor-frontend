@@ -222,6 +222,58 @@ export async function sendSetProtection(deviceId, protectionConfig) {
   return res.json();
 }
 
+export async function sendSetMaintenance(deviceId, maintenanceConfig) {
+  const res = await fetch(`${API_BASE_URL}/command/${deviceId}/set_maintenance`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(maintenanceConfig),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to send set_maintenance command');
+  }
+  return res.json();
+}
+
+export async function sendSetRuntime(deviceId, uptimeSeconds) {
+  const res = await fetch(`${API_BASE_URL}/command/${deviceId}/set_runtime`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ uptimeSeconds }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to send set_runtime command');
+  }
+  return res.json();
+}
+
+export async function sendResetEnergy(deviceId) {
+  const res = await fetch(`${API_BASE_URL}/command/${deviceId}/reset_energy`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to send reset_energy command');
+  }
+  return res.json();
+}
+
+export async function sendClearMaintenance(deviceId) {
+  const res = await fetch(`${API_BASE_URL}/command/${deviceId}/clear_maintenance`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to send clear_maintenance command');
+  }
+  return res.json();
+}
+
 /** Fetch the current pending command for a device (useful for debug/status UI). */
 export async function fetchPendingCommand(deviceId) {
   const res = await fetch(`${API_BASE_URL}/command/${deviceId}/pending`, { headers });
