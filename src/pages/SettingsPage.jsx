@@ -48,6 +48,8 @@ const FIELD_DEFS = [
   { key: 'startupGraceMs', label: 'Startup Grace', unit: 'ms', icon: Timer, step: 100, min: 0, max: 30000, dataKey: 'prot_startup_grace_ms', desc: 'Delay before protection checks begin' },
   { key: 'faultTripCount', label: 'Fault Trip Count', unit: '', icon: Settings, step: 1, min: 0, max: 1000, dataKey: 'prot_fault_trip_count', desc: 'Accumulated fault trip count' },
   { key: 'vibrationAckGraceMs', label: 'Vibration Ack Grace', unit: 'ms', icon: Timer, step: 100, min: 0, max: 30000, dataKey: 'prot_vibration_ack_grace_ms', desc: 'Grace period after vibration ack' },
+  { key: 'tapThresholdMg', label: 'Tap Threshold', unit: 'mg', icon: Activity, step: 62, min: 62, max: 16000, dataKey: 'prot_tap_threshold_mg', desc: 'ADXL345 tap detection sensitivity (62–16000 mg)' },
+  { key: 'tapDurationUs', label: 'Tap Duration', unit: 'µs', icon: Timer, step: 625, min: 625, max: 160000, dataKey: 'prot_tap_duration_us', desc: 'ADXL345 minimum tap duration (625–160000 µs)' },
 ];
 
 const DEFAULT_FORM = Object.fromEntries(FIELD_DEFS.map((f) => [f.key, '']));
@@ -183,6 +185,7 @@ function SettingsPage() {
     temperature: true,
     vibration: true,
     faults: true,
+    protection: false,
   });
 
   const handleCategoryToggle = (cat) => {
