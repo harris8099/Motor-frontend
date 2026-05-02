@@ -288,3 +288,37 @@ export async function fetchCommandHistory(deviceId, limit = 10) {
   if (!res.ok) throw new Error('Failed to fetch command history');
   return res.json();
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Data Export API
+// ─────────────────────────────────────────────────────────────────────────────
+
+export async function exportSensorData(deviceId, categories = [], startDate = null, endDate = null) {
+  const url = new URL(`${API_BASE_URL}/data/${deviceId}/export`);
+  if (categories && categories.length > 0) {
+    url.searchParams.append('categories', categories.join(','));
+  }
+  if (startDate) url.searchParams.append('start_date', startDate);
+  if (endDate) url.searchParams.append('end_date', endDate);
+  
+  const res = await fetch(url, { headers });
+  if (!res.ok) {
+    const errorJson = await res.json().catch(() => ({}));
+    throw new Error(errorJson.detail || 'Failed to export sensor data');
+  }
+  return res.blob();
+}
+
+export async function exportFaultLogs(deviceId, startDate = null, endDate = null) {
+  const url = new URL(`${API_BASE_URL}/faults/${deviceId}/export`);
+  if (startDate) url.searchParams.append('start_date', startDate);
+  if (endDate) url.searchParams.append('end_date', endDate);
+  
+  const res = await fetch(url, { headers });
+  if (!res.ok) {
+    const errorJson = await res.json().catch(() => ({}));
+    throw new Error(errorJson.detail || 'Failed to export fault logs');
+  }
+  return res.blob();
+}
+

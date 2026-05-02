@@ -18,6 +18,7 @@ import {
   Clock,
   AlertCircle,
   Terminal,
+  Download,
 } from 'lucide-react';
 import {
   fetchDeviceData,
@@ -28,6 +29,8 @@ import {
   sendClearMaintenance,
   fetchPendingCommand,
   fetchCommandHistory,
+  exportSensorData,
+  exportFaultLogs,
 } from '../api';
 import Breadcrumbs from '../components/Breadcrumbs';
 import LiveIndicator from '../components/LiveIndicator';
@@ -168,6 +171,72 @@ function SettingsPage() {
   const [commandHistory, setCommandHistory] = useState([]);
   const [commandError, setCommandError] = useState('');
   const [actionError, setActionError] = useState('');
+
+  const [exportingSensor, setExportingSensor] = useState(false);
+  const [exportingFaults, setExportingFaults] = useState(false);
+  const [exportStartDate, setExportStartDate] = useState('');
+  const [exportEndDate, setExportEndDate] = useState('');
+
+  const [exportCategories, setExportCategories] = useState({
+    motor: true,
+    power: true,
+    temperature: true,
+    vibration: true,
+    faults: true,
+  });
+
+  const handleCategoryToggle = (cat) => {
+    setExportCategories((prev) => ({ ...prev, [cat]: !prev[cat] }));
+  };
+
+  const handleExportSensorData = async () => {
+    setExportingSensor(true);
+    setActionError('');
+    try {
+      const sDate = exportStartDate ? new Date(exportStartDate).toISOString() : null;
+      const eDate = exportEndDate ? new Date(exportEndDate).toISOString() : null;
+      const selectedCats = Object.keys(exportCategories).filter(k => exportCategories[k]);
+      const blob = await exportSensorData(deviceId, selectedCats, sDate, eDate);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sensor_data_${deviceId}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      showToast('Sensor data downloaded successfully.', true);
+    } catch (err) {
+      setActionError(`Export failed: ${err.message}`);
+      showToast(`Failed to export sensor data: ${err.message}`, false);
+    } finally {
+      setExportingSensor(false);
+    }
+  };
+
+  const handleExportFaultLogs = async () => {
+    setExportingFaults(true);
+    setActionError('');
+    try {
+      const sDate = exportStartDate ? new Date(exportStartDate).toISOString() : null;
+      const eDate = exportEndDate ? new Date(exportEndDate).toISOString() : null;
+      const blob = await exportFaultLogs(deviceId, sDate, eDate);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `fault_logs_${deviceId}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      showToast('Fault logs downloaded successfully.', true);
+    } catch (err) {
+      setActionError(`Export failed: ${err.message}`);
+      showToast(`Failed to export fault logs: ${err.message}`, false);
+    } finally {
+      setExportingFaults(false);
+    }
+  };
 
   const showToast = (msg, ok = true) => {
     setToast({ msg, ok });
@@ -713,6 +782,93 @@ function SettingsPage() {
                   the command back to the backend.
                 </p>
               </div>
+            </div>
+          </section>
+
+          <section className="metrics-section">
+            <div className="section-header-with-icon">
+              <Download size={20} />
+              <h2 style={{ margin: 0 }}>Data Export</h2>
+            </div>
+            <p style={{ margin: '0 0 16px', opacity: 0.68, fontSize: '0.88rem' }}>
+              Download historical sensor readings and fault logs as CSV files for analysis. Filter by date to narrow down your export.
+            </p>
+
+            <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', marginBottom: '16px' }}>
+              <div className="metric-card" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.7, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  <Clock size={14} />
+                  Start Date
+                </div>
+                <input
+                  type="datetime-local"
+                  value={exportStartDate}
+                  onChange={(e) => setExportStartDate(e.target.value)}
+                  style={inputStyle('rgba(255,255,255,0.4)')}
+                />
+              </div>
+
+              <div className="metric-card" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.7, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  <Clock size={14} />
+                  End Date
+                </div>
+                <input
+                  type="datetime-local"
+                  value={exportEndDate}
+                  onChange={(e) => setExportEndDate(e.target.value)}
+                  style={inputStyle('rgba(255,255,255,0.4)')}
+                />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '16px', padding: '12px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.7, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px' }}>
+                <Activity size={14} />
+                Sensor Data Categories (Applies to Sensor Readings)
+              </div>
+              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                {Object.keys(exportCategories).map(cat => (
+                  <label key={cat} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem', cursor: 'pointer' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={exportCategories[cat]} 
+                      onChange={() => handleCategoryToggle(cat)} 
+                      style={{ cursor: 'pointer', accentColor: '#00d4ff' }}
+                    />
+                    <span style={{ textTransform: 'capitalize' }}>{cat}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <button 
+                onClick={handleExportSensorData} 
+                disabled={exportingSensor || exportingFaults} 
+                style={primaryButtonStyle(!exportingSensor && !exportingFaults, '#00d4ff', '#0066ff')}
+              >
+                <Download size={14} />
+                {exportingSensor ? 'Exporting...' : 'Download Sensor Readings'}
+              </button>
+              
+              <button 
+                onClick={handleExportFaultLogs} 
+                disabled={exportingSensor || exportingFaults} 
+                style={primaryButtonStyle(!exportingSensor && !exportingFaults, '#8759ff', '#4c2cc9')}
+              >
+                <Download size={14} />
+                {exportingFaults ? 'Exporting...' : 'Download Fault Logs'}
+              </button>
+              
+              {(exportStartDate || exportEndDate) && (
+                <button 
+                  onClick={() => { setExportStartDate(''); setExportEndDate(''); }} 
+                  style={secondaryButtonStyle()}
+                >
+                  <RefreshCw size={14} /> Clear Filters
+                </button>
+              )}
             </div>
           </section>
 
