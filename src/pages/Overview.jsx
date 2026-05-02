@@ -30,9 +30,9 @@ function parseDetails(details) {
 }
 
 function getHealthSummary(predictions) {
-  const rulPred  = predictions.find(p => p.prediction_type === 'remaining_useful_life');
-  const brgPred  = predictions.find(p => p.prediction_type === 'nasa_bearing_analysis');
-  const effPred  = predictions.find(p => p.prediction_type === 'advanced_efficiency_degradation');
+  const rulPred = predictions.find(p => p.prediction_type === 'remaining_useful_life');
+  const brgPred = predictions.find(p => p.prediction_type === 'nasa_bearing_analysis');
+  const effPred = predictions.find(p => p.prediction_type === 'advanced_efficiency_degradation');
 
   const rul = parseDetails(rulPred?.details);
   const brg = parseDetails(brgPred?.details);
@@ -40,66 +40,66 @@ function getHealthSummary(predictions) {
 
   return {
     hasData: !!(rulPred || brgPred),
-    healthIndex:           rul.health_index          ?? null,   // 0-1, 1 = perfect
-    healthStatus:          rul.health_status          ?? null,
-    rulDays:               rul.rul_days               ?? null,
-    maintenancePriority:   rul.maintenance_priority   ?? null,
-    bearingHealthIndex:    brg.bearing_health_index   ?? null,  // 0-1, 1 = worst
-    bearingStatus:         brg.health_status          ?? null,
-    bearingRecommendation: brg.recommendation         ?? null,
-    effDegradation:        eff.degradation_rate       ?? null,
+    healthIndex: rul.health_index ?? null,   // 0-1, 1 = perfect
+    healthStatus: rul.health_status ?? null,
+    rulDays: rul.rul_days ?? null,
+    maintenancePriority: rul.maintenance_priority ?? null,
+    bearingHealthIndex: brg.bearing_health_index ?? null,  // 0-1, 1 = worst
+    bearingStatus: brg.health_status ?? null,
+    bearingRecommendation: brg.recommendation ?? null,
+    effDegradation: eff.degradation_rate ?? null,
   };
 }
 
 const PRIORITY_COLOR = {
   immediate: 'var(--accent-danger)',
-  schedule:  'var(--accent-warm)',
-  monitor:   'var(--accent-success)',
+  schedule: 'var(--accent-warm)',
+  monitor: 'var(--accent-success)',
 };
 
 const STATUS_COLOR = {
   critical: 'var(--accent-danger)',
-  poor:     'var(--accent-danger)',
-  warning:  'var(--accent-warm)',
-  monitor:  'var(--accent-warm)',
-  fair:     'var(--accent-warm)',
-  good:     'var(--accent-success)',
+  poor: 'var(--accent-danger)',
+  warning: 'var(--accent-warm)',
+  monitor: 'var(--accent-warm)',
+  fair: 'var(--accent-warm)',
+  good: 'var(--accent-success)',
 };
 
 function formatPredType(type) {
   const labels = {
     // advanced_ml_prediction.py
-    advanced_anomaly_detection:      'Anomaly Detected',
-    nasa_bearing_analysis:           'Bearing Wear Risk',
+    advanced_anomaly_detection: 'Anomaly Detected',
+    nasa_bearing_analysis: 'Bearing Wear Risk',
     advanced_overheating_prediction: 'Overheating Risk',
-    stall_risk_random_forest:        'Stall Risk',
+    stall_risk_random_forest: 'Stall Risk',
     advanced_efficiency_degradation: 'Efficiency Degradation',
-    remaining_useful_life:           'Remaining Useful Life',
-    ai_comment:                      'AI Expert Commentary',
-    ai_analysis:                     'AI Failure Prediction',
+    remaining_useful_life: 'Remaining Useful Life',
+    ai_comment: 'AI Expert Commentary',
+    ai_analysis: 'AI Failure Prediction',
     // ml_prediction.py
-    anomaly_detection:               'Anomaly Detected',
-    overheating_prediction:          'Overheating Risk',
-    bearing_failure_prediction:      'Bearing Failure Risk',
-    stall_risk_prediction:           'Stall Risk',
+    anomaly_detection: 'Anomaly Detected',
+    overheating_prediction: 'Overheating Risk',
+    bearing_failure_prediction: 'Bearing Failure Risk',
+    stall_risk_prediction: 'Stall Risk',
     efficiency_degradation_prediction: 'Efficiency Degradation',
-    maintenance_prediction_ml:       'Maintenance Required',
+    maintenance_prediction_ml: 'Maintenance Required',
     // enhanced_prediction.py
-    overheating:                     'Overheating Alert',
-    stall_risk:                      'Stall Risk',
-    bearing_fault:                   'Bearing Fault',
-    efficiency_drop:                 'Efficiency Drop',
-    maintenance_due:                 'Maintenance Due',
+    overheating: 'Overheating Alert',
+    stall_risk: 'Stall Risk',
+    bearing_fault: 'Bearing Fault',
+    efficiency_drop: 'Efficiency Drop',
+    maintenance_due: 'Maintenance Due',
     // prebuilt_models.py
-    lof_anomaly_detection:           'Anomaly Detected',
-    elliptic_anomaly_detection:      'Statistical Anomaly',
-    ridge_temperature_prediction:    'Temperature Warning',
-    lasso_power_prediction:          'Power Anomaly',
-    gbr_vibration_prediction:        'Vibration Increase Warning',
-    svr_efficiency_prediction:       'Efficiency Drop Warning',
+    lof_anomaly_detection: 'Anomaly Detected',
+    elliptic_anomaly_detection: 'Statistical Anomaly',
+    ridge_temperature_prediction: 'Temperature Warning',
+    lasso_power_prediction: 'Power Anomaly',
+    gbr_vibration_prediction: 'Vibration Increase Warning',
+    svr_efficiency_prediction: 'Efficiency Drop Warning',
     // basic fallbacks
-    overheating_basic:               'Overheating Alert',
-    stall_risk_basic:                'Stall Alert',
+    overheating_basic: 'Overheating Alert',
+    stall_risk_basic: 'Stall Alert',
   };
   return labels[type] ?? type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
@@ -111,10 +111,10 @@ function readLS(key, fallback = null) {
   catch { return fallback; }
 }
 function writeLS(key, value) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch { }
 }
 function clearLS(key) {
-  try { localStorage.removeItem(key); } catch {}
+  try { localStorage.removeItem(key); } catch { }
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -147,11 +147,12 @@ function RenderMarkdown({ text }) {
 // ── Component ─────────────────────────────────────────────────────────────────
 function Overview() {
   const { deviceId } = useParams();
-  const [data, setData]             = useState([]);
+  const [data, setData] = useState([]);
   const [predictions, setPredictions] = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [error, setError]           = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [cityTemp, setCityTemp] = useState(null);
 
   // AI Button State
   const [runningAnalysis, setRunningAnalysis] = useState(false);
@@ -200,6 +201,27 @@ function Overview() {
     };
   }, []);
 
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m`)
+            .then(r => r.json())
+            .then(d => setCityTemp(d.current?.temperature_2m ?? null))
+            .catch(() => { });
+        },
+        () => {
+          // fallback to Udaipur if user denies location
+          fetch('https://api.open-meteo.com/v1/forecast?latitude=24.58&longitude=73.68&current=temperature_2m')
+            .then(r => r.json())
+            .then(d => setCityTemp(d.current?.temperature_2m ?? null))
+            .catch(() => { });
+        }
+      );
+    }
+  }, []);
+
   // Load both latest AI results from DB on mount / device change
   useEffect(() => {
     setCommentaryResult(null);
@@ -213,7 +235,7 @@ function Overview() {
         setCommentaryResult(norm(res?.commentary));
         setPredictionResult(norm(res?.prediction));
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [deviceId]);
 
   const handleRunAnalysis = async () => {
@@ -282,15 +304,15 @@ function Overview() {
     return () => clearInterval(interval);
   }, [deviceId]);
 
-  const latest      = data.length > 0 ? data[0] : null;
+  const latest = data.length > 0 ? data[0] : null;
   const uptimeHours = latest ? Math.floor(latest.uptime_seconds / 3600) : 0;
-  const averageTemp = latest ? ((latest.temp1 + latest.temp2) / 2).toFixed(1) : '0.0';
-  const health      = getHealthSummary(predictions);
+  const motorTemp = latest ? (latest.temp1 ?? 0).toFixed(1) : '0.0';
+  const health = getHealthSummary(predictions);
   const isLive = isReadingLive(latest);
 
-  const maxRPM   = 3000;
+  const maxRPM = 3000;
   const maxPower = 2000;
-  const maxTemp  = 100;
+  const maxTemp = 100;
 
   return (
     <div className="page-container">
@@ -349,11 +371,14 @@ function Overview() {
               </div>
 
               <div className="gauge-card">
-                <GaugeMeter value={averageTemp} max={maxTemp} unit="deg C" label="Temperature" color="var(--accent-danger)" size={140} />
+                <GaugeMeter value={motorTemp} max={maxTemp} unit="°C" label="Motor Temp" color="var(--accent-danger)" size={140} />
                 <div className="gauge-details">
-                  <span className={`status-pill ${parseFloat(averageTemp) > 80 ? 'warning' : 'normal'}`}>
-                    {parseFloat(averageTemp) > 80 ? 'HIGH' : 'NORMAL'}
+                  <span className={`status-pill ${parseFloat(motorTemp) > 80 ? 'warning' : 'normal'}`}>
+                    {parseFloat(motorTemp) > 80 ? 'HIGH' : 'NORMAL'}
                   </span>
+                  {cityTemp !== null && (
+                    <span className="gauge-detail-value">🌡 City: {cityTemp}°C</span>
+                  )}
                 </div>
               </div>
 
@@ -371,11 +396,11 @@ function Overview() {
           <section className="metrics-section">
             <h2>Quick Stats</h2>
             <div className="metrics-grid compact">
-              <MetricCard title="Voltage"      value={latest.voltage?.toFixed(1) ?? '--'}      unit="V"  icon={Zap}           delay="delay-1" />
-              <MetricCard title="Current"      value={latest.current?.toFixed(2) ?? '--'}      unit="A"  icon={Activity}      delay="delay-1" />
-              <MetricCard title="Power Factor" value={latest.power_factor?.toFixed(2) ?? '--'} unit=""   icon={TrendingUp}    delay="delay-2" />
-              <MetricCard title="Frequency"    value={latest.frequency?.toFixed(1) ?? '--'}    unit="Hz" icon={Zap}           delay="delay-2" />
-              <MetricCard title="Pulse Count"  value={latest.pulse ?? '--'}                    unit=""   icon={Activity}      delay="delay-3" />
+              <MetricCard title="Voltage" value={latest.voltage?.toFixed(1) ?? '--'} unit="V" icon={Zap} delay="delay-1" />
+              <MetricCard title="Current" value={latest.current?.toFixed(2) ?? '--'} unit="A" icon={Activity} delay="delay-1" />
+              <MetricCard title="Power Factor" value={latest.power_factor?.toFixed(2) ?? '--'} unit="" icon={TrendingUp} delay="delay-2" />
+              <MetricCard title="Frequency" value={latest.frequency?.toFixed(1) ?? '--'} unit="Hz" icon={Zap} delay="delay-2" />
+              <MetricCard title="Pulse Count" value={latest.pulse ?? '--'} unit="" icon={Activity} delay="delay-3" />
               <MetricCard
                 title="Active Faults"
                 value={latest.fault_overcurrent || latest.fault_overtemp || latest.fault_stall || latest.fault_vibration ? 'YES' : 'NO'}
@@ -435,8 +460,8 @@ function Overview() {
                     <div className="health-card__body">
                       <span className="health-card__label">Est. Maintenance Date</span>
                       <span className="health-card__value" style={{ fontSize: '1.2rem' }}>
-                        {health.rulDays >= 999 
-                          ? 'Optimal Life' 
+                        {health.rulDays >= 999
+                          ? 'Optimal Life'
                           : new Date(Date.now() + health.rulDays * 24 * 60 * 60 * 1000).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
                         }
                       </span>
@@ -460,8 +485,8 @@ function Overview() {
                       </span>
                       <span className="health-card__sub">
                         {health.maintenancePriority === 'immediate' && 'Schedule maintenance within 24–48 hours'}
-                        {health.maintenancePriority === 'schedule'  && 'Plan maintenance within the next 30 days'}
-                        {health.maintenancePriority === 'monitor'   && 'Continue monitoring — no immediate action'}
+                        {health.maintenancePriority === 'schedule' && 'Plan maintenance within the next 30 days'}
+                        {health.maintenancePriority === 'monitor' && 'Continue monitoring — no immediate action'}
                       </span>
                     </div>
                   </div>
@@ -537,7 +562,7 @@ function Overview() {
                   className="ai-trigger-btn"
                   onClick={handleRunLocalAnalysis}
                   disabled={runningLocal || localCooldown > 0}
-                  style={{ 
+                  style={{
                     display: 'flex', alignItems: 'center', gap: '0.5rem',
                     padding: '0.4rem 0.8rem', fontSize: '0.85rem',
                     background: 'var(--panel-border)', color: 'var(--text-strong)',
