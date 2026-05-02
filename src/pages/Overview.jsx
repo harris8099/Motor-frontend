@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useCityTemp } from '../context/LocationContext';
 import { useParams } from 'react-router-dom';
 import {
   Zap, Clock, Activity, Brain, AlertTriangle, RefreshCw,
@@ -152,7 +153,8 @@ function Overview() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [lastUpdated, setLastUpdated] = useState(null);
-  const [cityTemp, setCityTemp] = useState(null);
+  //const [cityTemp, setCityTemp] = useState(null);
+  const { cityTemp } = useCityTemp();
 
   // AI Button State
   const [runningAnalysis, setRunningAnalysis] = useState(false);
@@ -201,26 +203,26 @@ function Overview() {
     };
   }, []);
 
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m`)
-            .then(r => r.json())
-            .then(d => setCityTemp(d.current?.temperature_2m ?? null))
-            .catch(() => { });
-        },
-        () => {
-          // fallback to Udaipur if user denies location
-          fetch('https://api.open-meteo.com/v1/forecast?latitude=24.58&longitude=73.68&current=temperature_2m')
-            .then(r => r.json())
-            .then(d => setCityTemp(d.current?.temperature_2m ?? null))
-            .catch(() => { });
-        }
-      );
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (navigator.geolocation) {
+  //     navigator.geolocation.getCurrentPosition(
+  //       (pos) => {
+  //         const { latitude, longitude } = pos.coords;
+  //         fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m`)
+  //           .then(r => r.json())
+  //           .then(d => setCityTemp(d.current?.temperature_2m ?? null))
+  //           .catch(() => { });
+  //       },
+  //       () => {
+  //         // fallback to Udaipur if user denies location
+  //         fetch('https://api.open-meteo.com/v1/forecast?latitude=24.58&longitude=73.68&current=temperature_2m')
+  //           .then(r => r.json())
+  //           .then(d => setCityTemp(d.current?.temperature_2m ?? null))
+  //           .catch(() => { });
+  //       }
+  //     );
+  //   }
+  // }, []);
 
   // Load both latest AI results from DB on mount / device change
   useEffect(() => {
