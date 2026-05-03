@@ -34,6 +34,10 @@ function DeviceLayout({ onLogout }) {
               </Link>
             </div>
             <ThemeToggle />
+            <button type="button" className="sidebar-logout-mobile" onClick={onLogout}>
+              <LogOut size={16} />
+              Logout
+            </button>
           </div>
           <div className="device-info">
             <Cpu size={24} style={{ color: 'var(--accent-1)' }} />

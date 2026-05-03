@@ -137,6 +137,11 @@
   overflow-y: auto;
 }
 
+/* Mobile logout button shown in header */
+.sidebar-logout-mobile {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .sidebar {
     width: 100%;
@@ -170,9 +175,33 @@
     flex-direction: column;
   }
 
+  /* Hide the full-width footer logout on mobile */
   .sidebar-footer {
-    padding: 0 0.75rem 0.75rem 0.75rem;
-    border-top: none;
+    display: none;
+  }
+
+  /* Show compact logout button in the header */
+  .sidebar-logout-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: #d7e0ea;
+    border-radius: 8px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .sidebar-logout-mobile:hover {
+    background: rgba(220, 38, 38, 0.2);
+    border-color: rgba(220, 38, 38, 0.3);
+    color: #fca5a5;
   }
 
   .device-content {
