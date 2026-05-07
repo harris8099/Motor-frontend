@@ -31,6 +31,12 @@ const SEVERITY_CONFIG = {
   info: { icon: Info, color: '#0f6cbd', label: 'Info' },
 };
 
+const STATUS_LABELS = {
+  active: 'Active',
+  cleared_pending_close: 'Cleared pending close',
+  resolved: 'Resolved',
+};
+
 function FaultsPage() {
   const { deviceId } = useParams();
   const [data, setData] = useState([]);
@@ -150,6 +156,7 @@ function FaultsPage() {
 
   const activeFaults = latest ? faultTypes.filter(f => latest[f.key]) : [];
   const activeLoggedFaults = faults.filter(f => f.status === 'active');
+  const clearedPendingFaults = faults.filter(f => f.status === 'cleared_pending_close');
   const resolvedFaults = faults.filter(f => f.status === 'resolved');
 
   const filteredFaults = faults.filter(f => faultFilter === 'all' || f.status === faultFilter);
@@ -178,10 +185,11 @@ function FaultsPage() {
           <div>
             <h1>Fault Management</h1>
             <p className="page-subtitle">
-              {activeLoggedFaults.length > 0 
+              {activeLoggedFaults.length > 0
                 ? `${activeLoggedFaults.length} active fault${activeLoggedFaults.length > 1 ? 's' : ''} - requires attention`
-                : 'No active faults - all systems operating normally'
-              }
+                : clearedPendingFaults.length > 0
+                  ? `${clearedPendingFaults.length} cleared fault${clearedPendingFaults.length > 1 ? 's are' : ' is'} waiting for manual close`
+                  : 'No active faults - all systems operating normally'}
             </p>
           </div>
         </div>
@@ -290,6 +298,9 @@ function FaultsPage() {
                 {activeLoggedFaults.length > 0 && (
                   <span className="fault-count-badge active">{activeLoggedFaults.length} Active</span>
                 )}
+                {clearedPendingFaults.length > 0 && (
+                  <span className="fault-count-badge pending">{clearedPendingFaults.length} Pending Close</span>
+                )}
               </h2>
               
               <div className="filter-tabs" style={{ display: 'flex', gap: '0.5rem', background: 'var(--panel-bg)', padding: '0.25rem', borderRadius: '8px', border: '1px solid var(--panel-border)' }}>
@@ -313,6 +324,13 @@ function FaultsPage() {
                   style={{ padding: '0.4rem 0.8rem', borderRadius: '6px', border: 'none', background: faultFilter === 'resolved' ? 'var(--accent-1)' : 'transparent', color: faultFilter === 'resolved' ? 'white' : 'var(--text-main)', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer' }}
                 >
                   Resolved ({resolvedFaults.length})
+                </button>
+                <button 
+                  className={`filter-tab ${faultFilter === 'cleared_pending_close' ? 'active' : ''}`}
+                  onClick={() => setFaultFilter('cleared_pending_close')}
+                  style={{ padding: '0.4rem 0.8rem', borderRadius: '6px', border: 'none', background: faultFilter === 'cleared_pending_close' ? 'var(--accent-1)' : 'transparent', color: faultFilter === 'cleared_pending_close' ? 'white' : 'var(--text-main)', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer' }}
+                >
+                  Pending Close ({clearedPendingFaults.length})
                 </button>
               </div>
             </div>
@@ -347,7 +365,7 @@ function FaultsPage() {
                         </div>
                         <div className="fault-meta">
                           <span className={`status-badge ${fault.status}`}>
-                            {fault.status}
+                            {STATUS_LABELS[fault.status] || fault.status}
                           </span>
                           <span className="fault-time">
                             <Clock size={12} />
@@ -398,17 +416,30 @@ function FaultsPage() {
                             </div>
                           ) : (
                             <div className="fault-actions">
+                              {fault.status === 'cleared_pending_close' && (
+                                <div className="pending-close-note">
+                                  <h5>Hardware cleared this fault</h5>
+                                  <p>
+                                    The ESP32 removed this fault from the live active list, but it stays in history
+                                    until someone records the root cause and final resolution.
+                                  </p>
+                                  <div className="pending-close-meta">
+                                    <span>Cleared at: {formatDate(fault.cleared_at || fault.resolved_at)}</span>
+                                    <span>Cleared by: {fault.resolved_by || 'hardware'}</span>
+                                  </div>
+                                </div>
+                              )}
                               {!isResolving ? (
                                 <button 
                                   className="resolve-btn"
                                   onClick={() => setResolvingFault(fault.id)}
                                 >
                                   <CheckCircle size={16} />
-                                  Resolve Fault
+                                  {fault.status === 'cleared_pending_close' ? 'Close Fault' : 'Resolve Fault'}
                                 </button>
                               ) : (
                                 <div className="resolution-form">
-                                  <h5>Resolve Fault</h5>
+                                  <h5>{fault.status === 'cleared_pending_close' ? 'Close Fault' : 'Resolve Fault'}</h5>
                                   <div className="form-row">
                                     <div className="form-group required">
                                       <label>Root Cause</label>

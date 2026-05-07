@@ -16,6 +16,11 @@
   animation: pulse-badge 2s infinite;
 }
 
+.fault-count-badge.pending {
+  background: rgba(199, 138, 44, 0.15);
+  color: var(--accent-warm);
+}
+
 @keyframes pulse-badge {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.6; }
@@ -56,6 +61,10 @@
 
 .fault-card.resolved {
   opacity: 0.7;
+}
+
+.fault-card.cleared_pending_close {
+  border-style: dashed;
 }
 
 /* Fault header (clickable) */
@@ -147,6 +156,11 @@
   color: var(--accent-success);
 }
 
+.status-badge.cleared_pending_close {
+  background: rgba(199, 138, 44, 0.12);
+  color: var(--accent-warm);
+}
+
 .fault-time {
   display: flex;
   align-items: center;
@@ -226,6 +240,36 @@
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.pending-close-note {
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(199, 138, 44, 0.24);
+  border-radius: 10px;
+  background: rgba(199, 138, 44, 0.08);
+}
+
+.pending-close-note h5 {
+  margin: 0 0 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent-warm);
+}
+
+.pending-close-note p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-main);
+}
+
+.pending-close-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.65rem;
+  font-size: 0.75rem;
+  color: var(--text-soft);
 }
 
 .resolve-btn {
@@ -386,6 +430,13 @@
 :root[data-theme='dark'] .form-group textarea {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+  color-scheme: dark;
+}
+
+:root[data-theme='dark'] .form-group select option {
+  background: #1b2430;
+  color: #eef4fb;
 }
 
 :root[data-theme='dark'] .fault-details {
