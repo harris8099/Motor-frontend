@@ -40,7 +40,10 @@ function PowerPage() {
     }
 
     loadData();
-    const interval = setInterval(() => loadData(true), 5000);
+    const interval = setInterval(() => {
+      if (document.hidden) return;
+      loadData(true);
+    }, 10000);
     return () => clearInterval(interval);
   }, [deviceId, electricityRate]);
 

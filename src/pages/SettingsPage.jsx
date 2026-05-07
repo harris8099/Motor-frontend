@@ -298,12 +298,13 @@ function SettingsPage() {
 
     loadData();
     const interval = setInterval(async () => {
+      if (document.hidden) return;
       try {
         const res = await fetchDeviceData(deviceId, 1);
         const rows = res.data || [];
         setData(rows);
       } catch (_) {}
-    }, 10000);
+    }, 15000);
     return () => clearInterval(interval);
   }, [deviceId]);
 
@@ -327,7 +328,10 @@ function SettingsPage() {
     }
 
     loadCommandDebug();
-    const interval = setInterval(loadCommandDebug, 5000);
+    const interval = setInterval(() => {
+      if (document.hidden) return;
+      loadCommandDebug();
+    }, 10000);
     return () => {
       alive = false;
       clearInterval(interval);

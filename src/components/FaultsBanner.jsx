@@ -1,45 +1,22 @@
 import { useEffect, useState } from 'react';
 import { AlertTriangle, AlertCircle, Info, X } from 'lucide-react';
 
-import { fetchFaultsSummary, fetchActiveFaults } from '../api';
 import './FaultsBanner.css';
 
-function FaultsBanner() {
-  const [summary, setSummary] = useState({
+function FaultsBanner({
+  summary = {
     critical_count: 0,
     warning_count: 0,
     info_count: 0,
-    total_active: 0
-  });
-  const [firstFaultDevice, setFirstFaultDevice] = useState(null);
-  const [loading, setLoading] = useState(true);
+    total_active: 0,
+  },
+  loading = false,
+}) {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    loadData();
-    // Refresh every 30 seconds
-    const interval = setInterval(loadData, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  async function loadData() {
-    try {
-      const [summaryData, activeFaults] = await Promise.all([
-        fetchFaultsSummary(),
-        fetchActiveFaults()
-      ]);
-      setSummary(summaryData);
-      // Get first device with a critical fault, or first with any fault
-      const criticalFault = activeFaults.find(f => f.severity === 'critical');
-      const warningFault = activeFaults.find(f => f.severity === 'warning');
-      const anyFault = activeFaults[0];
-      setFirstFaultDevice(criticalFault?.device_id || warningFault?.device_id || anyFault?.device_id);
-    } catch (err) {
-      console.error('Failed to load faults data:', err);
-    } finally {
-      setLoading(false);
-    }
-  }
+    setDismissed(false);
+  }, [summary.total_active]);
 
   if (loading || dismissed || summary.total_active === 0) {
     return null;
@@ -49,7 +26,6 @@ function FaultsBanner() {
   const hasWarning = summary.warning_count > 0;
   const hasInfo = summary.info_count > 0;
 
-  // Determine banner severity based on highest level
   let bannerClass = 'faults-banner';
   let Icon = Info;
   let title = 'Active Faults';
@@ -67,7 +43,6 @@ function FaultsBanner() {
     title = `${summary.info_count} Notification${summary.info_count > 1 ? 's' : ''}`;
   }
 
-
   return (
     <div className={bannerClass}>
       <div className="banner-content">
@@ -80,9 +55,8 @@ function FaultsBanner() {
             {hasInfo && <span className="badge info">{summary.info_count} Info</span>}
           </span>
         </div>
-
       </div>
-      <button 
+      <button
         className="banner-dismiss"
         onClick={() => setDismissed(true)}
         title="Dismiss for now"

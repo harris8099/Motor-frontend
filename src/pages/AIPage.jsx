@@ -151,7 +151,10 @@ function AIPage() {
 
   useEffect(() => {
     loadPredictions();
-    const interval = setInterval(loadPredictions, 10000);
+    const interval = setInterval(() => {
+      if (document.hidden) return;
+      loadPredictions();
+    }, 15000);
     return () => clearInterval(interval);
   }, [deviceId]);
 

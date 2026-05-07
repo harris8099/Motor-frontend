@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Zap, Plus, Cpu, ArrowRight, Trash2, Search, Wifi, WifiOff, Clock, Layers, X, RefreshCw, Info, LogOut, Edit2, Check, XCircle, AlertTriangle, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { fetchDevices, createDevice, createDevicesBulk, deleteDevice, updateDevice, fetchActiveFaults } from '../api';
+import { fetchDevices, createDevice, createDevicesBulk, deleteDevice, updateDevice, fetchActiveFaults, fetchFaultsSummary } from '../api';
 import ThemeToggle from '../components/ThemeToggle';
 import FaultsBanner from '../components/FaultsBanner';
 import { getDeviceStatus } from '../utils/deviceStatus';
@@ -32,6 +32,13 @@ function Home({ onLogout }) {
   
   // Active faults for fault indicators
   const [activeFaults, setActiveFaults] = useState([]);
+  const [faultSummary, setFaultSummary] = useState({
+    critical_count: 0,
+    warning_count: 0,
+    info_count: 0,
+    total_active: 0,
+  });
+  const [faultsLoading, setFaultsLoading] = useState(true);
 
   async function loadDevices(silent = false) {
     try {
@@ -58,10 +65,16 @@ function Home({ onLogout }) {
 
   async function loadActiveFaults() {
     try {
-      const faults = await fetchActiveFaults();
+      const [faults, summary] = await Promise.all([
+        fetchActiveFaults(),
+        fetchFaultsSummary(),
+      ]);
       setActiveFaults(faults);
+      setFaultSummary(summary);
     } catch (err) {
       console.error('Failed to load active faults:', err);
+    } finally {
+      setFaultsLoading(false);
     }
   }
 
@@ -69,9 +82,10 @@ function Home({ onLogout }) {
     loadDevices();
     loadActiveFaults();
     const interval = setInterval(() => {
+      if (document.hidden) return;
       loadDevices(true);
       loadActiveFaults();
-    }, 10000);
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -275,7 +289,7 @@ function Home({ onLogout }) {
         </div>
       </header>
 
-      <FaultsBanner key={activeFaults.length} />
+      <FaultsBanner summary={faultSummary} loading={faultsLoading} />
 
       <main className="home-main">
         {error && <div className="error-banner">{error}</div>}
@@ -335,7 +349,10 @@ function Home({ onLogout }) {
           </div>
           <button 
             className="refresh-btn"
-            onClick={loadDevices}
+            onClick={() => {
+              loadDevices();
+              loadActiveFaults();
+            }}
             title="Refresh device status"
             disabled={loading}
           >

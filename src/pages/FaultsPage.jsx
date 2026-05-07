@@ -114,7 +114,10 @@ function FaultsPage() {
     }
 
     loadData();
-    const interval = setInterval(() => loadData(true), 10000);
+    const interval = setInterval(() => {
+      if (document.hidden) return;
+      loadData(true);
+    }, 15000);
     return () => clearInterval(interval);
   }, [deviceId]);
 

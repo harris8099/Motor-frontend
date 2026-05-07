@@ -51,7 +51,10 @@ function TerminalPage() {
   useEffect(() => {
     if (isStreaming) {
       pollData();
-      streamInterval.current = setInterval(pollData, 2000);
+      streamInterval.current = setInterval(() => {
+        if (document.hidden) return;
+        pollData();
+      }, 4000);
     } else {
       clearInterval(streamInterval.current);
     }
