@@ -76,8 +76,9 @@ function RenderMarkdown({ text }) {
   );
 }
 
-function AIPage() {
+function AIPage({ userRole }) {
   const { deviceId } = useParams();
+  const isVisitor = userRole === 'visitor';
   const [predictions, setPredictions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [runningAnalysis, setRunningAnalysis] = useState(false);
@@ -163,6 +164,7 @@ function AIPage() {
   const [modeMessage, setModeMessage] = useState('');
 
   const handleRunAnalysis = async () => {
+    if (isVisitor) return;
     if (cooldown > 0 || runningAnalysis) return;
     try {
       setRunningAnalysis(true);
@@ -194,6 +196,7 @@ function AIPage() {
   };
 
   const handleModeChange = async (newMode) => {
+    if (isVisitor) return;
     if (newMode === aiMode || modeChanging) return;
     setModeChanging(true);
     setModeMessage('');
@@ -240,6 +243,11 @@ function AIPage() {
       {error && <div className="error-banner">{error}</div>}
       {analysisMessage && <div className={analysisSuccess === false ? 'error-banner' : 'loading-banner'}>{analysisMessage}</div>}
       {modeMessage && <div style={{ padding: '0.6rem 1rem', marginBottom: '0.5rem', borderRadius: '8px', fontSize: '0.85rem', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--panel-border)', color: 'var(--text-main)' }}>{modeMessage}</div>}
+      {isVisitor && (
+        <div className="loading-banner">
+          Visitor mode can view AI commentary and prediction history, but only admins can run new AI analysis.
+        </div>
+      )}
 
       {/* ── AI Results — both panels show independently ──────────────────── */}
       {(commentaryResult || predictionResult) && (
@@ -351,7 +359,7 @@ function AIPage() {
                     id="mode-commentary"
                     className={`mode-btn ${aiMode === 'commentary' ? 'active' : ''}`}
                     onClick={() => handleModeChange('commentary')}
-                    disabled={modeChanging}
+                    disabled={isVisitor || modeChanging}
                   >
                     <MessageSquare size={13} />
                     Commentary
@@ -360,7 +368,7 @@ function AIPage() {
                     id="mode-prediction"
                     className={`mode-btn ${aiMode === 'prediction' ? 'active' : ''}`}
                     onClick={() => handleModeChange('prediction')}
-                    disabled={modeChanging}
+                    disabled={isVisitor || modeChanging}
                   >
                     <Zap size={13} />
                     Prediction
@@ -378,9 +386,14 @@ function AIPage() {
                 id="btn-run-ai-analysis"
                 className="ai-primary-action"
                 onClick={handleRunAnalysis}
-                disabled={runningAnalysis || cooldown > 0}
+                disabled={isVisitor || runningAnalysis || cooldown > 0}
               >
-                {runningAnalysis ? (
+                {isVisitor ? (
+                  <>
+                    <Brain size={16} />
+                    Admin Only
+                  </>
+                ) : runningAnalysis ? (
                   <>
                     <RefreshCw size={16} className="spinning" />
                     Analyzing…

@@ -8,7 +8,8 @@ import { getDeviceStatus } from '../utils/deviceStatus';
 import { formatISTDateTime } from '../utils/formatters';
 import './Home.css';
 
-function Home({ onLogout }) {
+function Home({ onLogout, userRole }) {
+  const isVisitor = userRole === 'visitor';
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -76,6 +77,7 @@ function Home({ onLogout }) {
   }, []);
 
   const addSingleDevice = async (e) => {
+    if (isVisitor) return;
     e.preventDefault();
     const trimmedId = newDeviceId.trim();
     if (!trimmedId) return;
@@ -103,6 +105,7 @@ function Home({ onLogout }) {
   };
 
   const addBulkDevices = async (e) => {
+    if (isVisitor) return;
     e.preventDefault();
     const lines = bulkInput.split('\n').map(l => l.trim()).filter(l => l);
     const devicesToCreate = [];
@@ -145,6 +148,7 @@ function Home({ onLogout }) {
   };
 
   const removeDevice = async (deviceId) => {
+    if (isVisitor) return;
     if (confirm(`Remove device ${deviceId}?`)) {
       try {
         await deleteDevice(deviceId);
@@ -156,6 +160,7 @@ function Home({ onLogout }) {
   };
 
   const toggleDeviceStatus = async (e, deviceId) => {
+    if (isVisitor) return;
     e.preventDefault();
     e.stopPropagation();
     const device = devices.find(d => d.id === deviceId);
@@ -174,6 +179,7 @@ function Home({ onLogout }) {
   };
 
   const startEditDevice = (e, device) => {
+    if (isVisitor) return;
     e.preventDefault();
     e.stopPropagation();
     setEditingDeviceId(device.id);
@@ -188,6 +194,7 @@ function Home({ onLogout }) {
   };
 
   const saveEditDevice = async (e, deviceId) => {
+    if (isVisitor) return;
     e.preventDefault();
     e.stopPropagation();
     try {
@@ -260,6 +267,9 @@ function Home({ onLogout }) {
               <h1>Smart Motor Command Center</h1>
             </div>
             <div className="header-actions">
+              {isVisitor && (
+                <span className="status-badge pending">Visitor Read Only</span>
+              )}
               <Link to="/about" className="about-link-btn" title="About">
                 <Info size={18} />
                 About
@@ -347,13 +357,15 @@ function Home({ onLogout }) {
         <section className="devices-section">
           <div className="section-header-row">
             <h2>Your Devices</h2>
-            <button 
-              className="toggle-add-btn"
-              onClick={() => setShowAddPanel(!showAddPanel)}
-            >
-              {showAddPanel ? <X size={18} /> : <Plus size={18} />}
-              {showAddPanel ? 'Cancel' : 'Add Device'}
-            </button>
+            {!isVisitor && (
+              <button 
+                className="toggle-add-btn"
+                onClick={() => setShowAddPanel(!showAddPanel)}
+              >
+                {showAddPanel ? <X size={18} /> : <Plus size={18} />}
+                {showAddPanel ? 'Cancel' : 'Add Device'}
+              </button>
+            )}
           </div>
 
           {/* Filters */}
@@ -506,33 +518,35 @@ function Home({ onLogout }) {
                         <span className="fault-count">{faultInfo.count}</span>
                       </div>
                     )}
-                    <div className="device-header-actions">
-                      <button 
-                        className="remove-btn"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          removeDevice(device.id);
-                        }}
-                        title="Delete device"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                      <button 
-                        className="edit-device-btn"
-                        onClick={(e) => startEditDevice(e, device)}
-                        title="Edit device name"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button 
-                        className={`status-toggle ${device.is_active ? 'online' : 'offline'}`}
-                        onClick={(e) => toggleDeviceStatus(e, device.id)}
-                        title={device.is_active ? 'Disable device' : 'Enable device'}
-                      >
-                        {device.is_active ? <Wifi size={16} /> : <WifiOff size={16} />}
-                      </button>
-                    </div>
+                    {!isVisitor && (
+                      <div className="device-header-actions">
+                        <button 
+                          className="remove-btn"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            removeDevice(device.id);
+                          }}
+                          title="Delete device"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                        <button 
+                          className="edit-device-btn"
+                          onClick={(e) => startEditDevice(e, device)}
+                          title="Edit device name"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button 
+                          className={`status-toggle ${device.is_active ? 'online' : 'offline'}`}
+                          onClick={(e) => toggleDeviceStatus(e, device.id)}
+                          title={device.is_active ? 'Disable device' : 'Enable device'}
+                        >
+                          {device.is_active ? <Wifi size={16} /> : <WifiOff size={16} />}
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="device-info">

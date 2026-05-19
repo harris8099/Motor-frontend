@@ -146,8 +146,9 @@ function RenderMarkdown({ text }) {
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-function Overview() {
+function Overview({ userRole }) {
   const { deviceId } = useParams();
+  const isVisitor = userRole === 'visitor';
   const [data, setData] = useState([]);
   const [predictions, setPredictions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -238,9 +239,10 @@ function Overview() {
         setPredictionResult(norm(res?.prediction));
       })
       .catch(() => { });
-  }, [deviceId]);
+  }, [deviceId, isVisitor]);
 
   const handleRunAnalysis = async () => {
+    if (isVisitor) return;
     if (cooldown > 0 || runningAnalysis) return;
     try {
       setRunningAnalysis(true);
@@ -266,6 +268,7 @@ function Overview() {
   };
 
   const handleRunLocalAnalysis = async () => {
+    if (isVisitor) return;
     if (localCooldown > 0 || runningLocal) return;
     try {
       setRunningLocal(true);
@@ -563,18 +566,20 @@ function Overview() {
                 <button
                   className="ai-trigger-btn"
                   onClick={handleRunLocalAnalysis}
-                  disabled={runningLocal || localCooldown > 0}
+                  disabled={isVisitor || runningLocal || localCooldown > 0}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '0.5rem',
                     padding: '0.4rem 0.8rem', fontSize: '0.85rem',
                     background: 'var(--panel-border)', color: 'var(--text-strong)',
                     border: '1px solid var(--panel-border-hover)', borderRadius: '8px', cursor: 'pointer',
-                    opacity: (runningLocal || localCooldown > 0) ? 0.7 : 1,
+                    opacity: (isVisitor || runningLocal || localCooldown > 0) ? 0.7 : 1,
                     fontWeight: 600
                   }}
                   title="Run Local ML Models (Isolation Forest, RUL, etc.)"
                 >
-                  {runningLocal ? (
+                  {isVisitor ? (
+                    <><Cpu size={14} /> Admin Only</>
+                  ) : runningLocal ? (
                     <><RefreshCw size={14} className="spin" /> Scanning...</>
                   ) : localCooldown > 0 ? (
                     <><Clock size={14} /> Ready in {localCooldown}s</>
@@ -585,11 +590,13 @@ function Overview() {
                 <button
                   className="ai-primary-action"
                   onClick={handleRunAnalysis}
-                  disabled={runningAnalysis || cooldown > 0}
+                  disabled={isVisitor || runningAnalysis || cooldown > 0}
                   style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
                   title="Run Cloud AI Analysis (Mistral/Gemini/Groq)"
                 >
-                  {runningAnalysis ? (
+                  {isVisitor ? (
+                    <><Sparkles size={14} /> Admin Only</>
+                  ) : runningAnalysis ? (
                     <><RefreshCw size={14} className="spin" /> Analyzing...</>
                   ) : cooldown > 0 ? (
                     <><Clock size={14} /> Ready in {cooldown}s</>

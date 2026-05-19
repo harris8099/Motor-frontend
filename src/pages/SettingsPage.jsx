@@ -143,6 +143,14 @@ function dangerButtonStyle() {
   };
 }
 
+function readOnlyButtonStyle() {
+  return {
+    ...secondaryButtonStyle(),
+    cursor: 'not-allowed',
+    opacity: 0.55,
+  };
+}
+
 function inputStyle(highlightColor) {
   return {
     background: 'rgba(255,255,255,0.06)',
@@ -157,8 +165,9 @@ function inputStyle(highlightColor) {
   };
 }
 
-function SettingsPage() {
+function SettingsPage({ userRole }) {
   const { deviceId } = useParams();
+  const isVisitor = userRole === 'visitor';
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -335,11 +344,13 @@ function SettingsPage() {
   }, [deviceId]);
 
   const handleChange = (key, value) => {
+    if (isVisitor) return;
     setForm((prev) => ({ ...prev, [key]: value }));
     setDirty(true);
   };
 
   const handleMaintenanceChange = (key, value) => {
+    if (isVisitor) return;
     setMaintForm((prev) => ({ ...prev, [key]: value }));
     setMaintDirty(true);
   };
@@ -353,6 +364,7 @@ function SettingsPage() {
   };
 
   const handleSend = async () => {
+    if (isVisitor) return;
     setSending(true);
     setActionError('');
     try {
@@ -375,6 +387,7 @@ function SettingsPage() {
   };
 
   const handleMaintenanceSend = async () => {
+    if (isVisitor) return;
     setMaintSending(true);
     setActionError('');
     try {
@@ -421,6 +434,7 @@ function SettingsPage() {
   };
 
   const handleRuntimeOnlySend = async () => {
+    if (isVisitor) return;
     setMaintSending(true);
     setActionError('');
     try {
@@ -441,6 +455,7 @@ function SettingsPage() {
   };
 
   const handleResetEnergy = async () => {
+    if (isVisitor) return;
     setMaintSending(true);
     setActionError('');
     try {
@@ -456,6 +471,7 @@ function SettingsPage() {
   };
 
   const handleClearMaintenance = async () => {
+    if (isVisitor) return;
     setMaintSending(true);
     setActionError('');
     try {
@@ -601,6 +617,11 @@ function SettingsPage() {
 
       {error && <div className="error-banner">{error}</div>}
       {actionError && <div className="error-banner">{actionError}</div>}
+      {isVisitor && (
+        <div className="loading-banner">
+          Visitor mode is read-only. You can review current values and export data, but only admins can send settings or maintenance commands.
+        </div>
+      )}
 
       {toast.msg && (
         <div
@@ -631,14 +652,18 @@ function SettingsPage() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
               <h2 style={{ margin: 0 }}>Protection Thresholds</h2>
               <div style={{ display: 'flex', gap: '10px' }}>
-                {dirty && (
+                {!isVisitor && dirty && (
                   <button onClick={handleReset} style={secondaryButtonStyle()}>
                     <RefreshCw size={14} /> Reset
                   </button>
                 )}
-                <button onClick={handleSend} disabled={sending || !dirty} style={primaryButtonStyle(dirty && !sending, '#00d4ff', '#0066ff')}>
+                <button
+                  onClick={handleSend}
+                  disabled={isVisitor || sending || !dirty}
+                  style={isVisitor ? readOnlyButtonStyle() : primaryButtonStyle(dirty && !sending, '#00d4ff', '#0066ff')}
+                >
                   <Send size={14} />
-                  {sending ? 'Sending...' : 'Send to Device'}
+                  {isVisitor ? 'Admin Only' : sending ? 'Sending...' : 'Send to Device'}
                 </button>
               </div>
             </div>
@@ -661,6 +686,7 @@ function SettingsPage() {
                         min={f.min}
                         max={f.max}
                         onChange={(e) => handleChange(f.key, e.target.value)}
+                        disabled={isVisitor}
                         style={inputStyle(dirty ? 'rgba(0,212,255,0.4)' : 'rgba(255,255,255,0.12)')}
                       />
                       {f.unit && <span style={{ opacity: 0.55, fontSize: '0.8rem', minWidth: '32px' }}>{f.unit}</span>}
@@ -676,26 +702,26 @@ function SettingsPage() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', gap: '12px', flexWrap: 'wrap' }}>
               <h2 style={{ margin: 0 }}>Maintenance and Runtime</h2>
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                {maintDirty && (
+                {!isVisitor && maintDirty && (
                   <button onClick={handleMaintenanceReset} style={secondaryButtonStyle()}>
                     <RefreshCw size={14} /> Reset
                   </button>
                 )}
                 <button
                   onClick={handleRuntimeOnlySend}
-                  disabled={maintSending || maintForm.runtimeHours === ''}
-                  style={primaryButtonStyle(!maintSending && maintForm.runtimeHours !== '', '#8759ff', '#4c2cc9')}
+                  disabled={isVisitor || maintSending || maintForm.runtimeHours === ''}
+                  style={isVisitor ? readOnlyButtonStyle() : primaryButtonStyle(!maintSending && maintForm.runtimeHours !== '', '#8759ff', '#4c2cc9')}
                 >
                   <Timer size={14} />
-                  Runtime Only
+                  {isVisitor ? 'Admin Only' : 'Runtime Only'}
                 </button>
                 <button
                   onClick={handleMaintenanceSend}
-                  disabled={maintSending || !maintDirty}
-                  style={primaryButtonStyle(maintDirty && !maintSending, '#19c37d', '#0f7a5d')}
+                  disabled={isVisitor || maintSending || !maintDirty}
+                  style={isVisitor ? readOnlyButtonStyle() : primaryButtonStyle(maintDirty && !maintSending, '#19c37d', '#0f7a5d')}
                 >
                   <Send size={14} />
-                  {maintSending ? 'Sending...' : 'Send Maintenance'}
+                  {isVisitor ? 'Admin Only' : maintSending ? 'Sending...' : 'Send Maintenance'}
                 </button>
               </div>
             </div>
@@ -710,6 +736,7 @@ function SettingsPage() {
                   type="datetime-local"
                   value={maintForm.nextMaintenanceTime}
                   onChange={(e) => handleMaintenanceChange('nextMaintenanceTime', e.target.value)}
+                  disabled={isVisitor}
                   style={inputStyle(maintDirty ? 'rgba(25,195,125,0.45)' : 'rgba(255,255,255,0.12)')}
                 />
                 <p style={{ margin: 0, fontSize: '0.72rem', opacity: 0.45 }}>Next maintenance target date and time.</p>
@@ -726,6 +753,7 @@ function SettingsPage() {
                   step="0.1"
                   value={maintForm.totalLifeCycleHours}
                   onChange={(e) => handleMaintenanceChange('totalLifeCycleHours', e.target.value)}
+                  disabled={isVisitor}
                   style={inputStyle(maintDirty ? 'rgba(25,195,125,0.45)' : 'rgba(255,255,255,0.12)')}
                 />
                 <p style={{ margin: 0, fontSize: '0.72rem', opacity: 0.45 }}>Total target operating life in hours.</p>
@@ -742,6 +770,7 @@ function SettingsPage() {
                   step="0.1"
                   value={maintForm.maintenanceHoursLimit}
                   onChange={(e) => handleMaintenanceChange('maintenanceHoursLimit', e.target.value)}
+                  disabled={isVisitor}
                   style={inputStyle(maintDirty ? 'rgba(25,195,125,0.45)' : 'rgba(255,255,255,0.12)')}
                 />
                 <p style={{ margin: 0, fontSize: '0.72rem', opacity: 0.45 }}>Hours between maintenance cycles.</p>
@@ -758,6 +787,7 @@ function SettingsPage() {
                   step="0.01"
                   value={maintForm.runtimeHours}
                   onChange={(e) => handleMaintenanceChange('runtimeHours', e.target.value)}
+                  disabled={isVisitor}
                   style={inputStyle(maintDirty ? 'rgba(25,195,125,0.45)' : 'rgba(255,255,255,0.12)')}
                 />
                 <p style={{ margin: 0, fontSize: '0.72rem', opacity: 0.45 }}>Runtime in hours. Render sends this to ESP as uptime seconds.</p>
@@ -765,10 +795,18 @@ function SettingsPage() {
             </div>
 
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '16px' }}>
-              <button onClick={handleResetEnergy} disabled={maintSending} style={secondaryButtonStyle()}>
+              <button
+                onClick={handleResetEnergy}
+                disabled={isVisitor || maintSending}
+                style={isVisitor ? readOnlyButtonStyle() : secondaryButtonStyle()}
+              >
                 <BatteryCharging size={14} /> Reset Energy Counter
               </button>
-              <button onClick={handleClearMaintenance} disabled={maintSending} style={dangerButtonStyle()}>
+              <button
+                onClick={handleClearMaintenance}
+                disabled={isVisitor || maintSending}
+                style={isVisitor ? readOnlyButtonStyle() : dangerButtonStyle()}
+              >
                 <RotateCcw size={14} /> Clear Maintenance
               </button>
             </div>

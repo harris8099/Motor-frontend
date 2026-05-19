@@ -36,13 +36,13 @@ function LoginPage({ onLogin }) {
     setError('');
 
     try {
-      const success = await login(username, password);
-      if (!success) {
+      const loggedInUser = await login(username, password);
+      if (!loggedInUser) {
         setError('Invalid username or password.');
         setIsLoading(false);
         return;
       }
-      onLogin();
+      onLogin(loggedInUser);
     } catch (err) {
       setError('Login failed. Please try again.');
       setIsLoading(false);

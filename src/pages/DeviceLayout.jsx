@@ -7,7 +7,7 @@ import {
 } from '../components/CustomIcons';
 import './DeviceLayout.css';
 
-function DeviceLayout({ onLogout }) {
+function DeviceLayout({ onLogout, userRole }) {
   const { deviceId } = useParams();
 
   const navItems = [

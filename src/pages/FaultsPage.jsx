@@ -37,8 +37,9 @@ const STATUS_LABELS = {
   resolved: 'Resolved',
 };
 
-function FaultsPage() {
+function FaultsPage({ userRole }) {
   const { deviceId } = useParams();
+  const isVisitor = userRole === 'visitor';
   const [data, setData] = useState([]);
   const [faults, setFaults] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -62,6 +63,7 @@ function FaultsPage() {
   };
 
   const handleAckAll = async () => {
+    if (isVisitor) return;
     setAckingFaults(true);
     try {
       await sendAckFaults(deviceId);
@@ -74,6 +76,7 @@ function FaultsPage() {
   };
 
   const handleAckSingle = async (faultName) => {
+    if (isVisitor) return;
     setAckingFaults(true);
     try {
       await sendAckFaults(deviceId, [faultName]);
@@ -119,6 +122,7 @@ function FaultsPage() {
   }, [deviceId]);
 
   const handleResolve = async (faultId) => {
+    if (isVisitor) return;
     if (!resolutionForm.root_cause || !resolutionForm.actions_taken || !resolutionForm.resolved_by) {
       alert('Please fill in all required fields: Root Cause, Actions Taken, and Resolved By');
       return;
@@ -239,6 +243,12 @@ function FaultsPage() {
               }}>{ackToast}</div>
             )}
             <div className="panel">
+              {isVisitor && (
+                <div className="pending-close-note" style={{ marginBottom: '12px' }}>
+                  <h5>Visitor access</h5>
+                  <p>You can view fault activity here, but acknowledging or resolving faults requires an admin account.</p>
+                </div>
+              )}
               {activeFaults.length > 0 ? (
                 <>
                   <div className="active-faults-list">
@@ -251,35 +261,39 @@ function FaultsPage() {
                             <span className="fault-name">{fault.name}</span>
                             <span className="fault-status">ACTIVE</span>
                           </div>
-                          <button
-                            className="ack-single-btn"
-                            onClick={() => handleAckSingle(faultKey)}
-                            disabled={ackingFaults}
-                            title={`Acknowledge ${fault.name} on ESP32`}
-                            style={{
-                              marginLeft: 'auto', padding: '4px 12px',
-                              background: 'rgba(39,174,96,0.12)', border: '1px solid #27ae60',
-                              color: '#27ae60', borderRadius: '6px', cursor: 'pointer',
-                              fontSize: '0.78rem', fontWeight: 600,
-                            }}
-                          >
-                            ACK
-                          </button>
+                          {!isVisitor && (
+                            <button
+                              className="ack-single-btn"
+                              onClick={() => handleAckSingle(faultKey)}
+                              disabled={ackingFaults}
+                              title={`Acknowledge ${fault.name} on ESP32`}
+                              style={{
+                                marginLeft: 'auto', padding: '4px 12px',
+                                background: 'rgba(39,174,96,0.12)', border: '1px solid #27ae60',
+                                color: '#27ae60', borderRadius: '6px', cursor: 'pointer',
+                                fontSize: '0.78rem', fontWeight: 600,
+                              }}
+                            >
+                              ACK
+                            </button>
+                          )}
                         </div>
                       );
                     })}
                   </div>
-                  <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
-                    <button
-                      className="resolve-btn"
-                      onClick={handleAckAll}
-                      disabled={ackingFaults}
-                      style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                    >
-                      <CheckCircle size={16} />
-                      {ackingFaults ? 'Sending…' : 'Acknowledge All Faults'}
-                    </button>
-                  </div>
+                  {!isVisitor && (
+                    <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+                      <button
+                        className="resolve-btn"
+                        onClick={handleAckAll}
+                        disabled={ackingFaults}
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                      >
+                        <CheckCircle size={16} />
+                        {ackingFaults ? 'Sending…' : 'Acknowledge All Faults'}
+                      </button>
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className="no-faults-message">
@@ -429,7 +443,7 @@ function FaultsPage() {
                                   </div>
                                 </div>
                               )}
-                              {!isResolving ? (
+                              {!isVisitor && !isResolving && (
                                 <button 
                                   className="resolve-btn"
                                   onClick={() => setResolvingFault(fault.id)}
@@ -437,7 +451,8 @@ function FaultsPage() {
                                   <CheckCircle size={16} />
                                   {fault.status === 'cleared_pending_close' ? 'Close Fault' : 'Resolve Fault'}
                                 </button>
-                              ) : (
+                              )}
+                              {!isVisitor && isResolving && (
                                 <div className="resolution-form">
                                   <h5>{fault.status === 'cleared_pending_close' ? 'Close Fault' : 'Resolve Fault'}</h5>
                                   <div className="form-row">
@@ -555,3 +570,5 @@ function FaultsPage() {
 }
 
 export default FaultsPage;
+
+

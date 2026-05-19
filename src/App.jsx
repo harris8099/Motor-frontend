@@ -12,24 +12,26 @@ import TerminalPage from './pages/TerminalPage';
 import SettingsPage from './pages/SettingsPage';
 import AboutPage from './pages/AboutPage';
 import LoginPage from './pages/LoginPage';
-import { isAuthenticated, logout } from './auth';
+import { getStoredUser, isAuthenticated, logout } from './auth';
 import './App.css';
 
-function ProtectedRoute({ isLoggedIn, children }) {
-  return isLoggedIn ? children : <Navigate to="/login" replace />;
+function ProtectedRoute({ user, children }) {
+  return user ? children : <Navigate to="/login" replace />;
 }
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(isAuthenticated());
+  const [user, setUser] = useState(isAuthenticated() ? getStoredUser() : null);
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
+  const handleLogin = (loggedInUser) => {
+    setUser(loggedInUser);
   };
 
   const handleLogout = () => {
     logout();
-    setIsLoggedIn(false);
+    setUser(null);
   };
+
+  const isLoggedIn = !!user;
 
   return (
     <Router>
@@ -41,15 +43,15 @@ function App() {
         <Route
           path="/"
           element={
-            <ProtectedRoute isLoggedIn={isLoggedIn}>
-              <Home onLogout={handleLogout} />
+            <ProtectedRoute user={user}>
+              <Home onLogout={handleLogout} userRole={user?.role} />
             </ProtectedRoute>
           }
         />
         <Route
           path="/about"
           element={
-            <ProtectedRoute isLoggedIn={isLoggedIn}>
+            <ProtectedRoute user={user}>
               <AboutPage />
             </ProtectedRoute>
           }
@@ -57,20 +59,20 @@ function App() {
         <Route
           path="/device/:deviceId"
           element={
-            <ProtectedRoute isLoggedIn={isLoggedIn}>
-              <DeviceLayout onLogout={handleLogout} />
+            <ProtectedRoute user={user}>
+              <DeviceLayout onLogout={handleLogout} userRole={user?.role} />
             </ProtectedRoute>
           }
         >
           <Route index element={<Navigate to="overview" replace />} />
-          <Route path="overview" element={<Overview />} />
-          <Route path="ai" element={<AIPage />} />
+          <Route path="overview" element={<Overview userRole={user?.role} />} />
+          <Route path="ai" element={<AIPage userRole={user?.role} />} />
           <Route path="power" element={<PowerPage />} />
           <Route path="temperature" element={<TemperaturePage />} />
           <Route path="vibration" element={<VibrationPage />} />
-          <Route path="faults" element={<FaultsPage />} />
+          <Route path="faults" element={<FaultsPage userRole={user?.role} />} />
           <Route path="terminal" element={<TerminalPage />} />
-          <Route path="settings" element={<SettingsPage />} />
+          <Route path="settings" element={<SettingsPage userRole={user?.role} />} />
           <Route path="about" element={<AboutPage />} />
         </Route>
         <Route path="*" element={<Navigate to={isLoggedIn ? "/" : "/login"} replace />} />
