@@ -86,6 +86,41 @@ function LoginPage({ onLogin }) {
             </div>
           </div>
 
+          <div className="login-visitor-card" aria-label="Visitor login credentials">
+            <div className="login-visitor-card__header">
+              <span className="login-visitor-badge">Visitor Login</span>
+              <button
+                type="button"
+                className="login-visitor-fill"
+                onClick={() => {
+                  setUsername('user');
+                  setPassword('password');
+                  setError('');
+                }}
+              >
+                Use These Credentials
+              </button>
+            </div>
+            <p className="login-visitor-card__text">
+              Sign in with the visitor account shown below.
+            </p>
+            <div className="login-visitor-credentials">
+              <div className="login-visitor-credential">
+                <span>Username</span>
+                <strong>user</strong>
+              </div>
+              <div className="login-visitor-credential">
+                <span>Password</span>
+                <strong>password</strong>
+              </div>
+            </div>
+            <div className="login-visitor-hint" role="note" aria-label="Backend loading notice">
+              <span className="login-visitor-hint__label">Please Note</span>
+              <strong>The backend may take a little time to load.</strong>
+              <span>Please be patient while signing in.</span>
+            </div>
+          </div>
+
           <form className="login-form" onSubmit={handleSubmit}>
             <label htmlFor="login-username">Username</label>
             <input
