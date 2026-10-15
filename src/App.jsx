@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import Home from './pages/Home';
 import DeviceLayout from './pages/DeviceLayout';
 import Overview from './pages/Overview';
@@ -77,6 +78,7 @@ function App() {
         </Route>
         <Route path="*" element={<Navigate to={isLoggedIn ? "/" : "/login"} replace />} />
       </Routes>
+      <Analytics />
     </Router>
   );
 }
